@@ -56,26 +56,34 @@ var QIAN_SAN_TITLE = '前三组三复式';
 var ZHONG_SAN_TITLE = '中三组三复式';
 var HOU_SAN_TITLE = '后三组三复式';
 
-var BET_ISSUES = { // 投注倍数
-  1: { multiple: 1, money: 1.8, index: 1 },
-  2: { multiple: 2, money: 3.6, index: 2 },
-  3: { multiple: 3, money: 5.4, index: 3 },
-  4: { multiple: 4, money: 7.2, index: 4 },
-  6: { multiple: 6, money: 10.8, index: 5 },
-  8: { multiple: 8, money: 14.4, index: 6 },
-  12: { multiple: 12, money: 21.6, index: 7 },
-  18: { multiple: 18, money: 32.4, index: 8 },
-  26: { multiple: 26, money: 46.8, index: 9 },
-  38: { multiple: 38, money: 68.4, index: 10 },
-  54: { multiple: 54, money: 97.2, index: 11 },
-  76: { multiple: 76, money: 136.8, index: 12 },
-  109: { multiple: 109, money: 196.2, index: 13 },
-  159: { multiple: 159, money: 286.2, index: 14 },
-  234: { multiple: 234, money: 421.2, index: 15 },
-  346: { multiple: 346, money: 622.8, index: 16 },
-  515: { multiple: 515, money: 927, index: 17 },
-  768: { multiple: 768, money: 1382.4, index: 18 }
-};
+var BET_NORMAL_LIST = [ // 正常投注倍数
+  { multiple: 1, money: 1.8, index: 1 },
+  { multiple: 2, money: 3.6, index: 2 },
+  { multiple: 3, money: 5.4, index: 3 },
+  { multiple: 4, money: 7.2, index: 4 },
+  { multiple: 6, money: 10.8, index: 5 },
+  { multiple: 8, money: 14.4, index: 6 },
+  { multiple: 12, money: 21.6, index: 7 },
+  { multiple: 18, money: 32.4, index: 8 },
+  { multiple: 26, money: 46.8, index: 9 },
+  { multiple: 38, money: 68.4, index: 10 },
+  { multiple: 54, money: 97.2, index: 11 },
+  { multiple: 76, money: 136.8, index: 12 },
+  { multiple: 109, money: 196.2, index: 13 },
+  { multiple: 159, money: 286.2, index: 14 },
+  { multiple: 234, money: 421.2, index: 15 },
+  { multiple: 346, money: 622.8, index: 16 }
+];
+var BET_ADD_LIST = [ // 追加投注倍数
+  { multiple: 32, money: 57.6, index: 1 },
+  { multiple: 46, money: 82.8, index: 2 },
+  { multiple: 67, money: 5.4, index: 3 },
+  { multiple: 97, money: 120.6, index: 4 },
+  { multiple: 140, money: 252, index: 5 },
+  { multiple: 205, money: 369, index: 6 },
+  { multiple: 300, money: 540, index: 7 },
+  { multiple: 435, money: 783, index: 8 }
+];
 
 var token = '';
 /*************** 投注需要用到的数据 - start ***************/
