@@ -1,0 +1,99 @@
+投重庆：
+request: 389 6注 1倍
+{"isTrace":0,"is_encoded":1,"orders":{"181009038":1},"traceStopValue":1,"traceWinStop":1,"bet_source":"browser","uuid":"","amount":0.12,"balls":"KT61wJR7ealKFZ3veif7Ra3ONvxzBwMvNsHslX46yqBJgENeyuee0V9j9BmMeApIgnOtijl2c7bJXq8g4zZorZb1Ol6UxGg256ogmb0s5SdBCOHs62felaGEC7x6Uv9wp/f2fh0ScvO+pEqcI9WagQ==","gameId":1}
+
+
+
+project接口：含有三种开奖结果
+{"isSuccess":true,"data":{"current_page":1,"data":[{"id":6478273,"serial_number":"B506EEC7C2D1E7192254A225BBFDC915","prize_group":"1956","multiple":1,"issue":"181011005","title":"\u524d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"26","is_overprize":0,"lottery_id":1,"coefficient":"0.01","amount":"0.0400","commission":0,"winning_number":[""],"prize":null,"status":0,"bought_at":"2018-10-11 00:23:29","bet_prize_group":null},{"id":6191790,"serial_number":"0F4C3B3C1349762E25D8075A3E277BA5","prize_group":"1956","multiple":1,"issue":"18100922","title":"\u4e2d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"0123456789","is_overprize":0,"lottery_id":6,"coefficient":"0.01","amount":"1.8000","commission":0,"winning_number":["6","8","6","0","8"],"prize":"0.0000","status":2,"bought_at":"2018-10-09 13:36:01","bet_prize_group":null},{"id":6191210,"serial_number":"D0172EBD09AEBFF173A17F8701262C6E","prize_group":"1956","multiple":1,"issue":"18100922","title":"\u540e\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"68","is_overprize":0,"lottery_id":6,"coefficient":"0.01","amount":"0.0400","commission":0,"winning_number":["6","8","6","0","8"],"prize":"0.0000","status":2,"bought_at":"2018-10-09 13:32:42","bet_prize_group":null},{"id":6183129,"serial_number":"5BBDB2C94361E137556BDF1273DB52FD","prize_group":"1956","multiple":3,"issue":"181009041","title":"\u540e\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"16","is_overprize":0,"lottery_id":1,"coefficient":"0.01","amount":"0.1200","commission":0,"winning_number":["8","5","0","0","0"],"prize":"0.0000","status":2,"bought_at":"2018-10-09 12:44:28","bet_prize_group":null},{"id":6156074,"serial_number":"05B4D87EDE56769A4F02F3B3745F515D","prize_group":"1956","multiple":1,"issue":"181009024","title":"\u524d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"26","is_overprize":0,"lottery_id":1,"coefficient":"0.01","amount":"0.0400","commission":0,"winning_number":["8","8","2","4","4"],"prize":"0.0000","status":2,"bought_at":"2018-10-09 09:52:10","bet_prize_group":null},{"id":6155180,"serial_number":"963672CF2E73A32F66B63FAC076E687B","prize_group":"1956","multiple":1,"issue":"181009024","title":"\u524d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"26","is_overprize":0,"lottery_id":1,"coefficient":"0.01","amount":"0.0400","commission":0,"winning_number":["8","8","2","4","4"],"prize":"0.0000","status":2,"bought_at":"2018-10-09 09:43:37","bet_prize_group":null},{"id":6108675,"serial_number":"9F5519FB2C040BCC106E96675CB65524","prize_group":"1956","multiple":1,"issue":"181008104","title":"\u524d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"16","is_overprize":0,"lottery_id":1,"coefficient":"0.01","amount":"0.0400","commission":0,"winning_number":["7","7","8","9","3"],"prize":"0.0000","status":2,"bought_at":"2018-10-08 22:36:26","bet_prize_group":null},{"id":6107424,"serial_number":"34E39C8B7F71547D33DBF5686A7221DE","prize_group":"1956","multiple":1,"issue":"181008103","title":"\u524d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"01","is_overprize":0,"lottery_id":1,"coefficient":"0.01","amount":"0.0400","commission":0,"winning_number":["0","9","6","1","5"],"prize":"0.0000","status":2,"bought_at":"2018-10-08 22:30:03","bet_prize_group":null},{"id":6088725,"serial_number":"597524FF012B6C8F479BC27BB700A7DE","prize_group":"1956","multiple":1,"issue":"181008089","title":"\u4e2d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"23","is_overprize":0,"lottery_id":1,"coefficient":"0.01","amount":"0.0400","commission":0,"winning_number":["4","5","3","0","5"],"prize":"0.0000","status":2,"bought_at":"2018-10-08 20:46:28","bet_prize_group":null},{"id":6081115,"serial_number":"F12BF8CD6399FF22269AFF647CA030A4","prize_group":"1956","multiple":1,"issue":"0278476","title":"\u524d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"01","is_overprize":0,"lottery_id":3,"coefficient":"0.01","amount":"0.0400","commission":0,"winning_number":["1","1","2","7","7"],"prize":"0.0000","status":2,"bought_at":"2018-10-08 19:55:55","bet_prize_group":null},{"id":5927986,"serial_number":"29295499F7537A4383EA3B25BD1FDFC9","prize_group":"1956","multiple":26,"issue":"181007094","title":"\u540e\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"0123456789","is_overprize":0,"lottery_id":1,"coefficient":"0.01","amount":"46.8000","commission":0,"winning_number":["4","8","0","8","3"],"prize":"0.0000","status":2,"bought_at":"2018-10-07 21:35:12","bet_prize_group":null},{"id":5927969,"serial_number":"A7B827D18C4398A0BB2AFE73BC9691CE","prize_group":"1956","multiple":38,"issue":"181007094","title":"\u4e2d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"0123456789","is_overprize":0,"lottery_id":1,"coefficient":"0.01","amount":"68.4000","commission":0,"winning_number":["4","8","0","8","3"],"prize":"247.760000","status":3,"bought_at":"2018-10-07 21:35:02","bet_prize_group":null},{"id":5927932,"serial_number":"47C81B58D1AD24901FCEC4FB4F839002","prize_group":"1956","multiple":3,"issue":"181007094","title":"\u524d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"0123456789","is_overprize":0,"lottery_id":1,"coefficient":"0.01","amount":"5.4000","commission":0,"winning_number":["4","8","0","8","3"],"prize":"0.0000","status":2,"bought_at":"2018-10-07 21:34:52","bet_prize_group":null},{"id":5927731,"serial_number":"4C485F0E9B0F3294A31F4D94FEEF0A41","prize_group":"1956","multiple":6,"issue":"18100770","title":"\u540e\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"0123456789","is_overprize":0,"lottery_id":6,"coefficient":"0.01","amount":"10.8000","commission":0,"winning_number":["4","4","2","2","4"],"prize":"39.120000","status":3,"bought_at":"2018-10-07 21:34:00","bet_prize_group":null},{"id":5927704,"serial_number":"6F054AF160B90E1860D45335420B27BB","prize_group":"1956","multiple":6,"issue":"18100770","title":"\u4e2d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"0123456789","is_overprize":0,"lottery_id":6,"coefficient":"0.01","amount":"10.8000","commission":0,"winning_number":["4","4","2","2","4"],"prize":"39.120000","status":3,"bought_at":"2018-10-07 21:33:55","bet_prize_group":null},{"id":5927688,"serial_number":"0F3D558734EA00836FDD6399DCEF31F7","prize_group":"1956","multiple":6,"issue":"18100770","title":"\u524d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"0123456789","is_overprize":0,"lottery_id":6,"coefficient":"0.01","amount":"10.8000","commission":0,"winning_number":["4","4","2","2","4"],"prize":"39.120000","status":3,"bought_at":"2018-10-07 21:33:49","bet_prize_group":null},{"id":5925914,"serial_number":"28CF6AC46E8CB1C8CEA57AF45F10F1FB","prize_group":"1956","multiple":3,"issue":"0278401","title":"\u540e\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"0123456789","is_overprize":0,"lottery_id":3,"coefficient":"0.01","amount":"5.4000","commission":0,"winning_number":["8","5","4","3","5"],"prize":"0.0000","status":2,"bought_at":"2018-10-07 21:24:24","bet_prize_group":null},{"id":5925894,"serial_number":"9DBF7561CD46912B2F93F53C8985DEA7","prize_group":"1956","multiple":3,"issue":"0278401","title":"\u4e2d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"0123456789","is_overprize":0,"lottery_id":3,"coefficient":"0.01","amount":"5.4000","commission":0,"winning_number":["8","5","4","3","5"],"prize":"0.0000","status":2,"bought_at":"2018-10-07 21:24:18","bet_prize_group":null},{"id":5925871,"serial_number":"CCA04E851E5DEE9237ADBB059DAC2183","prize_group":"1956","multiple":38,"issue":"0278401","title":"\u524d\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"0123456789","is_overprize":0,"lottery_id":3,"coefficient":"0.01","amount":"68.4000","commission":0,"winning_number":["8","5","4","3","5"],"prize":"0.0000","status":2,"bought_at":"2018-10-07 21:24:09","bet_prize_group":null},{"id":5925724,"serial_number":"8FB597F3AF62C0908E2F83F80676B625","prize_group":"1956","multiple":18,"issue":"181007093","title":"\u540e\u4e09\u7ec4\u4e09\u590d\u5f0f","position":"","display_bet_number":"0123456789","is_overprize":0,"lottery_id":1,"coefficient":"0.01","amount":"32.4000","commission":0,"winning_number":["6","8","6","9","8"],"prize":"0.0000","status":2,"bought_at":"2018-10-07 21:23:28","bet_prize_group":null}],"first_page_url":"https:\/\/api.chunqiu1.com\/reports\/project?page=1","from":1,"last_page":33,"last_page_url":"https:\/\/api.chunqiu1.com\/reports\/project?page=33","next_page_url":"https:\/\/api.chunqiu1.com\/reports\/project?page=2","path":"https:\/\/api.chunqiu1.com\/reports\/project","per_page":"20","prev_page_url":null,"to":20,"total":642}}
+
+game/issue接口：
+{"isSuccess":true,"data":{"cur_issue":"181011024","cur_issue_time":1539223155,"cur_time":1539222302,"cycle":600,"game_numbers":[{"number":"181011024","time":"2018-10-11 09:59:15","wn_number":""},{"number":"181011025","time":"2018-10-11 10:09:15","wn_number":""},{"number":"181011026","time":"2018-10-11 10:19:15","wn_number":""},{"number":"181011027","time":"2018-10-11 10:29:15","wn_number":""},{"number":"181011028","time":"2018-10-11 10:39:15","wn_number":""},{"number":"181011029","time":"2018-10-11 10:49:15","wn_number":""},{"number":"181011030","time":"2018-10-11 10:59:15","wn_number":""},{"number":"181011031","time":"2018-10-11 11:09:15","wn_number":""},{"number":"181011032","time":"2018-10-11 11:19:15","wn_number":""},{"number":"181011033","time":"2018-10-11 11:29:15","wn_number":""},{"number":"181011034","time":"2018-10-11 11:39:15","wn_number":""},{"number":"181011035","time":"2018-10-11 11:49:15","wn_number":""},{"number":"181011036","time":"2018-10-11 11:59:15","wn_number":""},{"number":"181011037","time":"2018-10-11 12:09:15","wn_number":""},{"number":"181011038","time":"2018-10-11 12:19:15","wn_number":""},{"number":"181011039","time":"2018-10-11 12:29:15","wn_number":""},{"number":"181011040","time":"2018-10-11 12:39:15","wn_number":""},{"number":"181011041","time":"2018-10-11 12:49:15","wn_number":""},{"number":"181011042","time":"2018-10-11 12:59:15","wn_number":""},{"number":"181011043","time":"2018-10-11 13:09:15","wn_number":""},{"number":"181011044","time":"2018-10-11 13:19:15","wn_number":""},{"number":"181011045","time":"2018-10-11 13:29:15","wn_number":""},{"number":"181011046","time":"2018-10-11 13:39:15","wn_number":""},{"number":"181011047","time":"2018-10-11 13:49:15","wn_number":""},{"number":"181011048","time":"2018-10-11 13:59:15","wn_number":""},{"number":"181011049","time":"2018-10-11 14:09:15","wn_number":""},{"number":"181011050","time":"2018-10-11 14:19:15","wn_number":""},{"number":"181011051","time":"2018-10-11 14:29:15","wn_number":""},{"number":"181011052","time":"2018-10-11 14:39:15","wn_number":""},{"number":"181011053","time":"2018-10-11 14:49:15","wn_number":""},{"number":"181011054","time":"2018-10-11 14:59:15","wn_number":""},{"number":"181011055","time":"2018-10-11 15:09:15","wn_number":""},{"number":"181011056","time":"2018-10-11 15:19:15","wn_number":""},{"number":"181011057","time":"2018-10-11 15:29:15","wn_number":""},{"number":"181011058","time":"2018-10-11 15:39:15","wn_number":""},{"number":"181011059","time":"2018-10-11 15:49:15","wn_number":""},{"number":"181011060","time":"2018-10-11 15:59:15","wn_number":""},{"number":"181011061","time":"2018-10-11 16:09:15","wn_number":""},{"number":"181011062","time":"2018-10-11 16:19:15","wn_number":""},{"number":"181011063","time":"2018-10-11 16:29:15","wn_number":""},{"number":"181011064","time":"2018-10-11 16:39:15","wn_number":""},{"number":"181011065","time":"2018-10-11 16:49:15","wn_number":""},{"number":"181011066","time":"2018-10-11 16:59:15","wn_number":""},{"number":"181011067","time":"2018-10-11 17:09:15","wn_number":""},{"number":"181011068","time":"2018-10-11 17:19:15","wn_number":""},{"number":"181011069","time":"2018-10-11 17:29:15","wn_number":""},{"number":"181011070","time":"2018-10-11 17:39:15","wn_number":""},{"number":"181011071","time":"2018-10-11 17:49:15","wn_number":""},{"number":"181011072","time":"2018-10-11 17:59:15","wn_number":""},{"number":"181011073","time":"2018-10-11 18:09:15","wn_number":""}],"last_issue":"181011023","statistics_data":[[[2,10,12,2],[3,6,6,3],[1,20,18,1],[2,10,8,2],[2,10,10,2],[2,10,10,2],[4,5,9,4],[2,10,11,2],[2,10,10,2],[0,21,20,0]],[[4,5,8,4],[1,20,13,1],[1,20,16,1],[1,20,18,1],[1,20,11,1],[2,10,7,2],[0,21,20,0],[2,10,11,2],[3,6,11,3],[5,4,6,5]],[[1,20,14,1],[2,10,10,2],[4,5,7,4],[2,10,9,2],[3,6,8,3],[0,21,20,0],[1,20,19,1],[4,5,12,4],[2,10,14,2],[1,20,13,1]],[[1,20,12,1],[2,10,14,2],[1,20,19,1],[0,21,20,0],[4,5,6,4],[2,10,15,2],[2,10,13,2],[2,10,17,2],[5,4,6,5],[1,20,16,1]],[[0,21,20,0],[1,20,13,1],[1,20,11,1],[4,5,6,4],[3,6,12,3],[0,21,20,0],[2,10,10,2],[3,6,16,3],[3,6,14,3],[3,6,11,3]]]}}
+
+{
+  uuid: "",
+  bet_source: "browser",
+  isTrace: 0,
+  is_encoded: 1,
+  traceStopValue: 1, 
+  traceWinStop: 1, 
+  gameId: 1, // 城市时时彩游戏id
+  amount: 0.12, // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
+  orders: {
+    181009038: 1 // key: 要投注的奖期
+  },
+  balls: [
+    {
+      ball: "38", // 投注的数字, 全投注："0123456789"
+      moneyunit: 0.01, // 投注的单位
+      multiple: 1, // 投注的倍数
+      num: 6, // 一共投多少注, 全投注：90
+      onePrice: 2, // 一注的价钱
+      prize_group: 1956, // 奖金组
+      wayId: 16 // 组合玩法的id
+    }
+  ]
+}
+
+wayId：
+  前三组三：16
+  中三组三：150
+  后三组三：49
+gameId和lottery_id：
+  新疆：6
+  重庆：1
+  黑龙江：3
+
+异常处理：
+1、如果程序出现异常（断网、超时、或其它），中断程序，播放紧急警告音乐，人工来赶紧下注，正常了后在接着刷新用程序
+2、如果余额小于等于本金的三分二或一半都播放紧急警告音乐，人工来关闭音乐，界面上给出警告信息
+
+逻辑梳理：
+# 强制重新开始
+  - ［下一把待投］ 默认9把
+  - 根据［下一把待投］来投注
+  - 投注完之后得到 ［已投的数据］
+  - 根据［已投的数据］来查询出［上一把投注的结果］
+  - 根据［上一把投注的结果］来得出［下一把待投］
+    - ［上一把投注的结果］有9条记录
+      - 没有一条记录到15把还没中的，按照正常倍数来跟，中的从1倍开始，没中的往下跟
+      - 有一条或多条记录都到第15把还没中，把它们的倍数加起来除以9，追加9把
+    - ［上一把投注的结果］有18条记录
+      - 余额大于等于成本(当前充值记录总和)，舍弃追加的9把，继续跟正常的9把
+      - 余额小于成本
+        - 没有一条记录到15把还没中的，按照正常倍数来跟
+        - 有一条或多条记录都到第15把还没中, 找出当前倍数大于等于54的记录，把它们的下一个倍数加起来除以9,
+          用得到的倍数重新起9把，取上不取下，中的从1倍开始，没中的往下跟
+
+
+
+
+
+# 非强制重新开始
+  
+让用户输入一个数，从记录中的前几条开始跟投，只能是9和18，而且必须要是每个城市有前中后，如果不满足就警告不给投，需要人工处理成需要的规定才能投。
+
+在需要投注的时候再去算下一把应该怎么投，在0分、10分、20分、30分、40分、50分的时候去定时5秒检查结果，只要在整点之间有没出结果的就一直监听，如果过了正点还没出结果，那就是网站有异常了，暂停投注，给予音乐和文字提示；
+添加已投数组，每次都去校验已投数组条数是否等于输入条数，如果是那就是都投完了；
+添加一个当前投注的条数的变量，9或18，因为数量是动态变化的，变化之后动态更新界面上的跟头条数，界面上再给出一个是动态变化的提示；
+
+只查询当天8点到第二天早上3点之间投注的条数；
+
+程序运行中是不能手动修改任何选项的，只能先暂停再修改选项
+
+每一次操作都给一个操作成功或失败的状态提示，如果点击暂停按钮时已经有投出去的但还没投完，就给弹框提示
+
+加三个按钮：暂停、投注、只投注下一把(投注完自动暂停)
+
+用Promise来写
+
+
+
+
+
+
+
+
+
+
+
