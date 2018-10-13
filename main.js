@@ -127,10 +127,10 @@ var betNextList = []; // 接下来需要投注的数据, 数据结构同betBegin
 /*************** 用户选项 - start ***************/
 var betToggle = 0; // 投注开关，开：1，关：0
 var preBetNum = 0; // 上一次投注数量, 需要用户自己输入，9的整数倍; 0就是重新开始
-var stopGainMoney = 0; // 盈利多少钱就不完来
+var stopGainMoney = 0; // 盈利多少钱就停止所有的下注
+var abandonAddMoney = 0; // 盈利多少钱就放弃再分的把数
 var curUserAvaliable = 0; // 当前用户的可用余额
 var curUserFillMoney = 0; // 当前用户的充值总金额
-var abandonAddMoney = 0; // 盈利多少钱就放弃再分的条数
 var canBeginBet = 0; // 是否可以开始投注了，可以：1，不可以：0
 
 var wrongTipTxt = ''; // 错误提示文本
@@ -469,6 +469,50 @@ function getNextAndBet() {
     console.log(err);
   });;
 }
+
+// 创建DOM，注册事件
+function createDoms() {
+  var cntDom = Zepto(`<div style="position: fixed;top: 0;left: 0;bottom: 0;right: 0;z-index: 1000;background: rgba(0,0,0,0.7);">
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
+      <legend>信息展示区域</legend>
+      当前余额：<label id="curAvaliableDom">97.08</label> <br/>
+      当天充值总金额：<label id="curFillMoneyDom">197.08</label> <br/>
+      当天赢利额：<label id="curGainDom">-97.08</label> <br/>
+    </fieldset>
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
+      <legend>选项区域</legend>
+      盈利多少钱就停止所有的下注：<br/> <input value='1000' style="color:#000;" /> <br/>
+      盈利多少钱就放弃再分的把数：<br/> <input value='500' style="color:#000;" /> <br/>
+      从历史投注的前多少条开始跟投(必须是0或9的倍数)：<br/> <input value='0' style="color:#000;" /> <br/>
+    </fieldset>
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
+      <legend>操作区域</legend>
+      <button id="beginBetDom" style="color: #000;height: 24px;" class="customButtom" >开始投注</button> <br/><br/>
+      <button id="stopBetDom" style="color: #000;height: 24px;" class="customButtom" >停止投注</button> <br/>
+    </fieldset>
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
+      <legend>错误和动态信息提示区域</legend>
+      当前程序执行状态：<br/> <label id="softExcuteStatusDom" style="color:green;">上一把投注已完成投注，正在监听下一把投注</label> <br/>
+      程序异常提示：<br/> <label id="softExcuteWrongDom" style="color:yellow;">xxxxxxxx</label> <br/>
+    </fieldset>
+  </div>`);
+  //var beginBetDom = Zepto('<button>开始投注</button>');
+  // 分：信息提示区域、选项区域、操作区域、错误信息提示区域
+  Zepto('head').append(`<style>
+    .customButtom {
+      position: relative;
+    }
+    .customButtom:hover {
+      background: green;
+    }
+    .customButtom:active {
+      left: 2px;
+      top: 2px;
+    }
+  </style>`);
+  Zepto('body').append(cntDom);
+}
+createDoms();
 
 /////////////////////////////////////
 
