@@ -56,6 +56,12 @@ var QIAN_SAN_TITLE = '前三组三复式';
 var ZHONG_SAN_TITLE = '中三组三复式';
 var HOU_SAN_TITLE = '后三组三复式';
 
+var TEXT_TO_WAY_ID = { // 从文本获取wayId
+  [QIAN_SAN_TITLE]: QIAN_SAN_WAY_ID,
+  [ZHONG_SAN_TITLE]: ZHONG_SAN_WAY_ID,
+  [HOU_SAN_TITLE]: HOU_SAN_WAY_ID
+};
+
 var BET_NORMAL_LIST = [ // 正常投注倍数
   { multiple: 1, money: 1.8, index: 1 },
   { multiple: 2, money: 3.6, index: 2 },
@@ -153,6 +159,10 @@ function http(method, url, data) {
 // 获取上一次投注结果
 function requestPreResult() {
   return new Promise(function(resolve, reject){
+    if (preBetNum === 0) { // 重新开始，不获取上一次投注结果
+      resolve([]);
+      return;
+    }
     var d = new Date();
     var year = d.getFullYear();
     var month = d.getMonth() + 1;
@@ -214,6 +224,9 @@ function requestNextIssue(lotteryId) {
 
 // 校验上一期数据的正确性
 function validatePreResult(preData) {
+  if (preData.length === 0 && preBetNum === 0) {
+    return true;
+  }
   var errMsg = '上一把数据条数不符合规范';
   if (!(preData.length === 9 || preData.length === 18)) {
     console.log('==' + errMsg + '==');
@@ -307,7 +320,7 @@ function getNextAndBet() {
     var heiLongJiangWaitBetArr2 = [];
 
     // 校验数据的正确性
-    if (validatePreResult(preData) && validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
+    if (!validatePreResult(preData) || !validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
       return;
     }
 
@@ -368,11 +381,74 @@ function getNextAndBet() {
       }
     }
 
+    processData([
+      xinJiangWaitBetArr1, chongQingWaitBetArr1, heiLongJiangWaitBetArr1,
+      xinJiangWaitBetArr2, chongQingWaitBetArr2, heiLongJiangWaitBetArr2
+    ], xinJiang, chongQing, heiLongJiang);
+
   }).catch(function(err){
     console.log('==投注失败==:', err);
   });
 }
 
+
+var dataObj = {
+  uuid: "",
+  bet_source: "browser",
+  isTrace: 0,
+  is_encoded: 1,
+  traceStopValue: 1, 
+  traceWinStop: 1, 
+  gameId: 1, // 城市时时彩游戏id
+  amount: 0.12, // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
+  orders: {
+    181009038: 1 // key: 要投注的奖期
+  },
+  balls: [
+    {
+      ball: "38", // 投注的组合数字, 全投注："0123456789"
+      moneyunit: 0.01, // 投注的单位
+      multiple: 1, // 投注的倍数
+      num: 6, // 一共投多少注, 全投注：90
+      onePrice: 2, // 一注的价钱
+      prize_group: 1956, // 奖金组
+      wayId: 16 // 组合玩法的id
+    }
+  ]
+};
+
+// 整理数据
+function processData(dataArr, xinJiang, chongQing, heiLongJiang) {
+  // TODO: 逻辑
+  var processedData = [];
+  for (var i = 0; i < dataArr.length; i++) {
+    var curData = dataArr[i];
+    processedData.push({
+      uuid: betCommon.uuid,
+      bet_source: betCommon.bet_source,
+      isTrace: betCommon.isTrace,
+      is_encoded: betCommon.is_encoded,
+      traceStopValue: betCommon.traceStopValue, 
+      traceWinStop: betCommon.traceWinStop, 
+      gameId: curData.lottery_id, // 城市时时彩游戏id
+      amount: betCommon.num * curData.multiple * betCommon.moneyunit * betCommon.onePrice, // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
+      orders: {
+        [curData.issue]: 1 // key: 要投注的奖期
+      },
+      balls: [
+        {
+          ball: betCommon.ball, // 投注的组合数字, 全投注："0123456789"
+          moneyunit: betCommon.moneyunit, // 投注的单位
+          multiple: curData.multiple, // 投注的倍数
+          num: betCommon.num, // 一共投多少注, 全投注：90
+          onePrice: betCommon.onePrice, // 一注的价钱
+          prize_group: betCommon.prize_group, // 奖金组
+          wayId: TEXT_TO_WAY_ID[curData.title] // 组合玩法的id
+        }
+      ]
+    });
+  }
+}
 
 /////////////////////////////////////
 var is_new_start = true; // 是否重新开始
