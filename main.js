@@ -62,6 +62,9 @@ var TEXT_TO_WAY_ID = { // 从文本获取wayId
   [HOU_SAN_TITLE]: HOU_SAN_WAY_ID
 };
 
+var splitMultiple = 54; // 到多少倍开始拆分
+var backToMultiple = 6; // 遇到拆分需要返回开始的倍数
+var addBeginMultiple = 6; // 追加开始的倍数
 var BET_NORMAL_LIST = [ // 正常投注倍数
   { multiple: 1, money: 1.8, index: 1 },
   { multiple: 2, money: 3.6, index: 2 },
@@ -170,13 +173,6 @@ function requestPreResult() {
     month = (month > 9 ? month : '0' + month);
     day = (day > 9 ? day : '0' + day);
   
-    d.setTime(d.getTime() + 24*60*60*1000);
-    var nextYear = d.getFullYear();
-    var nextMonth = d.getMonth() + 1;
-    var nextDay = d.getDate();
-    nextMonth = (nextMonth > 9 ? nextMonth : '0' + nextMonth);
-    nextDay = (nextDay > 9 ? nextDay : '0' + nextDay);
-  
     var params = `start=${year}-${month}-${day} 00:00:00&end=${year}-${month}-${day} 23:59:59&lottery_id=0&page=1&page_size=20`;
     var num = 1;
     function requestProject() {
@@ -228,57 +224,20 @@ function validatePreResult(preData) {
     return true;
   }
   var errMsg = '上一把数据条数不符合规范';
-  if (!(preData.length === 9 || preData.length === 18)) {
-    console.log('==' + errMsg + '==');
+  if (preData.length % 9 !== 0) {
+    console.log('==上一把数据条数必须是9的倍数==');
     return false;
   }
-  if (!(preData[0].issue === preData[1].issue && preData[1].issue === preData[2].issue)) {
-    console.log('==' + errMsg + '==');
-    return false;
-  }
-  if (!(preData[0].lottery_id === preData[1].lottery_id && preData[1].lottery_id === preData[2].lottery_id)) {
-    console.log('==' + errMsg + '==');
-    return false;
-  }
-  if (!(preData[3].issue === preData[4].issue && preData[4].issue === preData[5].issue)) {
-    console.log('==' + errMsg + '==');
-    return false;
-  }
-  if (!(preData[3].lottery_id === preData[4].lottery_id && preData[4].lottery_id === preData[5].lottery_id)) {
-    console.log('==' + errMsg + '==');
-    return false;
-  }
-  if (!(preData[6].issue === preData[7].issue && preData[7].issue === preData[8].issue)) {
-    console.log('==' + errMsg + '==');
-    return false;
-  }
-  if (!(preData[6].lottery_id === preData[7].lottery_id && preData[7].lottery_id === preData[8].lottery_id)) {
-    console.log('==' + errMsg + '==');
-    return false;
-  }
-  if (preData.length === 18) {
-    if (!(preData[9].issue === preData[10].issue && preData[10].issue === preData[11].issue)) {
-      console.log('==' + errMsg + '==');
+  for (var i = 0; i < (preData.length / 3); i++) {
+    var index0 = i * 9 + 0;
+    var index1 = i * 9 + 1;
+    var index2 = i * 9 + 2;
+    if (!(preData[index0].issue === preData[index1].issue && preData[index1].issue === preData[index2].issue)) {
+      console.log('==上一把数据的奖期混乱对不上号==');
       return false;
     }
-    if (!(preData[9].lottery_id === preData[10].lottery_id && preData[10].lottery_id === preData[11].lottery_id)) {
-      console.log('==' + errMsg + '==');
-      return false;
-    }
-    if (!(preData[12].issue === preData[13].issue && preData[13].issue === preData[14].issue)) {
-      console.log('==' + errMsg + '==');
-      return false;
-    }
-    if (!(preData[12].lottery_id === preData[13].lottery_id && preData[13].lottery_id === preData[14].lottery_id)) {
-      console.log('==' + errMsg + '==');
-      return false;
-    }
-    if (!(preData[15].issue === preData[16].issue && preData[16].issue === preData[17].issue)) {
-      console.log('==' + errMsg + '==');
-      return false;
-    }
-    if (!(preData[15].lottery_id === preData[16].lottery_id && preData[16].lottery_id === preData[17].lottery_id)) {
-      console.log('==' + errMsg + '==');
+    if (!(preData[index0].lottery_id === preData[index1].lottery_id && preData[index1].lottery_id === preData[index2].lottery_id)) {
+      console.log('==上一把数据的城市混乱对不上号==');
       return false;
     }
   }
@@ -287,16 +246,187 @@ function validatePreResult(preData) {
 
 // 校验下一期数据的有效性
 function validateNextIssue(xinJiang, chongQing, heiLongJiang) {
-  var limitTime = 45;
+  var limitTime = 36 + (preBetNum / 9) * 10;
   if (
       (xinJiang.cur_issue_time - xinJiang.cur_time < limitTime) || 
       (chongQing.cur_issue_time - chongQing.cur_time < limitTime) || 
       (heiLongJiang.cur_issue_time - heiLongJiang.cur_time < limitTime)
   ) {
-    console.log('==投注剩余时间不够，没有投注==');
+    console.log('==投注剩余时间不够，没有执行投注==');
     return false;
   }
   return true;
+}
+
+// 获取正常倍数的下一个倍数
+function getNormalMultipleNextData(multiple) {
+  for (var i = 0; i < BET_NORMAL_LIST.length; i++) {
+    if (BET_NORMAL_LIST[i].multiple === multiple && BET_NORMAL_LIST[i+1]) {
+      return BET_NORMAL_LIST[i+1];
+    }
+  }
+}
+
+// 获取默认重新开始数据
+function getDefaultData(cityDatas) {
+  return [
+    // 新疆
+    {
+      issue: cityDatas[XIN_JINAG_ID].issue,
+      wayId: QIAN_SAN_WAY_ID,
+      lotteryId: XIN_JINAG_ID,
+      multiple: 1
+    },
+    {
+      issue: cityDatas[XIN_JINAG_ID].issue,
+      wayId: ZHONG_SAN_WAY_ID,
+      lotteryId: XIN_JINAG_ID,
+      multiple: 1
+    },
+    {
+      issue: cityDatas[XIN_JINAG_ID].issue,
+      wayId: HOU_SAN_WAY_ID,
+      lotteryId: XIN_JINAG_ID,
+      multiple: 1
+    },
+    // 重庆
+    {
+      issue: cityDatas[CHONG_QING_ID].issue,
+      wayId: QIAN_SAN_WAY_ID,
+      lotteryId: CHONG_QING_ID,
+      multiple: 1
+    },
+    {
+      issue: cityDatas[CHONG_QING_ID].issue,
+      wayId: ZHONG_SAN_WAY_ID,
+      lotteryId: CHONG_QING_ID,
+      multiple: 1
+    },
+    {
+      issue: cityDatas[CHONG_QING_ID].issue,
+      wayId: HOU_SAN_WAY_ID,
+      lotteryId: CHONG_QING_ID,
+      multiple: 1
+    },
+    // 黑龙江
+    {
+      issue: cityDatas[HEI_LONG_JINAG_ID].issue,
+      wayId: QIAN_SAN_WAY_ID,
+      lotteryId: HEI_LONG_JINAG_ID,
+      multiple: 1
+    },
+    {
+      issue: cityDatas[HEI_LONG_JINAG_ID].issue,
+      wayId: ZHONG_SAN_WAY_ID,
+      lotteryId: HEI_LONG_JINAG_ID,
+      multiple: 1
+    },
+    {
+      issue: cityDatas[HEI_LONG_JINAG_ID].issue,
+      wayId: HOU_SAN_WAY_ID,
+      lotteryId: HEI_LONG_JINAG_ID,
+      multiple: 1
+    }
+  ]
+}
+
+// 基于之前历史数据上来获取数据(拆分逻辑)
+function getDataFromAdd(dataArr) {
+  var processedData = [];
+  var needSplitNum = 0;
+  for (var i = 0; i < dataArr.length, i++) {
+    var curData = Object.assign({}, dataArr[i]);
+    if (curData.multiple >= splitMultiple) {
+      curData.multiple = backToMultiple;
+      needSplitNum = needSplitNum + 1;
+    }
+    processedData.push(curData);
+  }
+  for (var i = 0; i < needSplitNum; i++) {
+    for (var j = 0; j < dataArr.length, j++) {
+      var curData = Object.assign({}, dataArr[j]);
+      curData.multiple = BET_ADD_LIST[0].multiple;
+      processedData.push(curData);
+    }
+  }
+  return processedData;
+}
+
+// 处理数据
+function processingData(dataArr, cityDatas) {
+  var processedDataArr = [];
+  if (dataArr.length === 0 && preBetNum === 0) {
+    processedDataArr = getDefaultData(cityDatas);
+  } else if (dataArr.length % 9 === 0) {
+    var tempDataArr = [];
+    for (var i = 0; i < dataArr.length; i++) {
+      var curData = dataArr[i];
+      tempDataArr.push({
+        issue: cityDatas[curData.lottery_id].issue,
+        wayId: TEXT_TO_WAY_ID[curData.title],
+        lotteryId: curData.lottery_id,
+        multiple: getNormalMultipleNextData(curData.multiple)
+      });
+    }
+    processedDataArr = getDataFromAdd(tempDataArr);
+  }
+  return processedDataArr;
+}
+
+// 投注API
+function betAPI(index, dataArr) {
+  var data = dataArr[index];
+  var encryptObj = CryptoJS.AES.encrypt(JSON.stringify(data.balls), CryptoJS.enc.Utf8.parse("C194V1RBJG8MJPEL"), {
+    iv: CryptoJS.enc.Utf8.parse("ARC49SBQE76B8QZT"),
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  });
+  data.ball = encryptObj.toString();
+  http('POST', 'https://api.chunqiu1.com/games/bet', data: data).then(function(res){
+    console.log('==投注成功[' + index + ']==');
+    index++;
+    if (index < dataArr.length) {
+      setTimeout(function(){
+        betAPI(index, dataArr);
+      }, 100);
+    }
+  }).catch(function(err){
+    reject('==投注失败==:', err);
+  });
+}
+
+// 执行投注
+function excuteBet(dataArr) {
+  var processedDataArr = [];
+  for (var i = 0; i < dataArr.length; i++) {
+    var curData = dataArr[i];
+    processedDataArr.push({
+      uuid: betCommon.uuid,
+      bet_source: betCommon.bet_source,
+      isTrace: betCommon.isTrace,
+      is_encoded: betCommon.is_encoded,
+      traceStopValue: betCommon.traceStopValue, 
+      traceWinStop: betCommon.traceWinStop, 
+      gameId: curData.lotteryId, // 城市时时彩游戏id
+      amount: betCommon.num * curData.multiple * betCommon.moneyunit * betCommon.onePrice, // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
+      orders: {
+        [curData.issue]: 1 // key: 要投注的奖期
+      },
+      balls: [
+        {
+          ball: betCommon.ball, // 投注的组合数字, 全投注："0123456789"
+          moneyunit: betCommon.moneyunit, // 投注的单位
+          multiple: curData.multiple, // 投注的倍数
+          num: betCommon.num, // 一共投多少注, 全投注：90
+          onePrice: betCommon.onePrice, // 一注的价钱
+          prize_group: betCommon.prize_group, // 奖金组
+          wayId: curData.wayId // 组合玩法的id
+        }
+      ]
+    });
+  }
+  // 执行投注API
+  // betAPI(0, processedDataArr);
 }
 
 // 得到三个城市的下一期要投注的数据并投注
@@ -312,168 +442,30 @@ function getNextAndBet() {
     var chongQing = resList[2];
     var heiLongJiang = resList[3];
 
-    var xinJiangWaitBetArr1 = [];
-    var chongQingWaitBetArr1 = [];
-    var heiLongJiangWaitBetArr1 = [];
-    var xinJiangWaitBetArr2 = [];
-    var chongQingWaitBetArr2 = [];
-    var heiLongJiangWaitBetArr2 = [];
-
     // 校验数据的正确性
     if (!validatePreResult(preData) || !validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
       return;
     }
-
+    // 把数据倒序排列一下
+    var allProcessedData = [];
     for (var i = preData.length; i > 0; i--) {
-      var curData = preData[i];
-      if (i < 9) { // 前9注
-        if (curData.lottery_id === XIN_JINAG_ID) {
-          if (curData.title === QIAN_SAN_TITLE) {
-            xinJiangWaitBetArr1[0] = curData
-          } else if (curData.title === ZHONG_SAN_TITLE) {
-            xinJiangWaitBetArr1[1] = curData
-          } else if (curData.title === HOU_SAN_TITLE) {
-            xinJiangWaitBetArr1[2] = curData
-          }
-        } else if (curData.lottery_id === CHONG_QING_ID) {
-          if (curData.title === QIAN_SAN_TITLE) {
-            chongQingWaitBetArr1[0] = curData
-          } else if (curData.title === ZHONG_SAN_TITLE) {
-            chongQingWaitBetArr1[1] = curData
-          } else if (curData.title === HOU_SAN_TITLE) {
-            chongQingWaitBetArr1[2] = curData
-          }
-        } else (curData.lottery_id === HEI_LONG_JINAG_ID) {
-          if (curData.title === QIAN_SAN_TITLE) {
-            heiLongJiangWaitBetArr1[0] = curData
-          } else if (curData.title === ZHONG_SAN_TITLE) {
-            heiLongJiangWaitBetArr1[1] = curData
-          } else if (curData.title === HOU_SAN_TITLE) {
-            heiLongJiangWaitBetArr1[2] = curData
-          }
-        }
-      } else { // 后9注
-        if (curData.lottery_id === XIN_JINAG_ID) {
-          if (curData.title === QIAN_SAN_TITLE) {
-            xinJiangWaitBetArr2[0] = curData
-          } else if (curData.title === ZHONG_SAN_TITLE) {
-            xinJiangWaitBetArr2[1] = curData
-          } else if (curData.title === HOU_SAN_TITLE) {
-            xinJiangWaitBetArr2[2] = curData
-          }
-        } else if (curData.lottery_id === CHONG_QING_ID) {
-          if (curData.title === QIAN_SAN_TITLE) {
-            chongQingWaitBetArr2[0] = curData
-          } else if (curData.title === ZHONG_SAN_TITLE) {
-            chongQingWaitBetArr2[1] = curData
-          } else if (curData.title === HOU_SAN_TITLE) {
-            chongQingWaitBetArr2[2] = curData
-          }
-        } else (curData.lottery_id === HEI_LONG_JINAG_ID) {
-          if (curData.title === QIAN_SAN_TITLE) {
-            heiLongJiangWaitBetArr2[0] = curData
-          } else if (curData.title === ZHONG_SAN_TITLE) {
-            heiLongJiangWaitBetArr2[1] = curData
-          } else if (curData.title === HOU_SAN_TITLE) {
-            heiLongJiangWaitBetArr2[2] = curData
-          }
-        }
-      }
+      allProcessedData.push(preData[i]);
     }
 
-    processData([
-      xinJiangWaitBetArr1, chongQingWaitBetArr1, heiLongJiangWaitBetArr1,
-      xinJiangWaitBetArr2, chongQingWaitBetArr2, heiLongJiangWaitBetArr2
-    ], xinJiang, chongQing, heiLongJiang);
+    var processedDataArr = processingData(allProcessedData, {
+      [XIN_JINAG_ID]: xinJiang, 
+      [CHONG_QING_ID]: chongQing, 
+      [HEI_LONG_JINAG_ID]: heiLongJiang
+    });
+
+    excuteBet(processedDataArr);
 
   }).catch(function(err){
     console.log('==投注失败==:', err);
   });
 }
 
-
-var dataObj = {
-  uuid: "",
-  bet_source: "browser",
-  isTrace: 0,
-  is_encoded: 1,
-  traceStopValue: 1, 
-  traceWinStop: 1, 
-  gameId: 1, // 城市时时彩游戏id
-  amount: 0.12, // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
-  orders: {
-    181009038: 1 // key: 要投注的奖期
-  },
-  balls: [
-    {
-      ball: "38", // 投注的组合数字, 全投注："0123456789"
-      moneyunit: 0.01, // 投注的单位
-      multiple: 1, // 投注的倍数
-      num: 6, // 一共投多少注, 全投注：90
-      onePrice: 2, // 一注的价钱
-      prize_group: 1956, // 奖金组
-      wayId: 16 // 组合玩法的id
-    }
-  ]
-};
-
-// 整理数据
-function processData(dataArr, xinJiang, chongQing, heiLongJiang) {
-  // TODO: 逻辑
-  var processedData = [];
-  for (var i = 0; i < dataArr.length; i++) {
-    var curData = dataArr[i];
-    processedData.push({
-      uuid: betCommon.uuid,
-      bet_source: betCommon.bet_source,
-      isTrace: betCommon.isTrace,
-      is_encoded: betCommon.is_encoded,
-      traceStopValue: betCommon.traceStopValue, 
-      traceWinStop: betCommon.traceWinStop, 
-      gameId: curData.lottery_id, // 城市时时彩游戏id
-      amount: betCommon.num * curData.multiple * betCommon.moneyunit * betCommon.onePrice, // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
-      orders: {
-        [curData.issue]: 1 // key: 要投注的奖期
-      },
-      balls: [
-        {
-          ball: betCommon.ball, // 投注的组合数字, 全投注："0123456789"
-          moneyunit: betCommon.moneyunit, // 投注的单位
-          multiple: curData.multiple, // 投注的倍数
-          num: betCommon.num, // 一共投多少注, 全投注：90
-          onePrice: betCommon.onePrice, // 一注的价钱
-          prize_group: betCommon.prize_group, // 奖金组
-          wayId: TEXT_TO_WAY_ID[curData.title] // 组合玩法的id
-        }
-      ]
-    });
-  }
-}
-
 /////////////////////////////////////
-var is_new_start = true; // 是否重新开始
-var cur_bet_issue_number = 9; // 当前下注的个数，9或18
-var cur_token = ''; // token
-var cur_game_id = ''; // 当前要玩哪个城市
-var cur_way_id = ''; // 当前是哪个组合
-var cur_issue = ''; // 当前要投注的奖期
-
-var done_issues = [ // 已经投注的奖期数组
-  { 
-    gameId: XIN_JINAG_ID,
-    [QIAN_SAN_WAY_ID]: {
-      isWin: false, // 是否中奖
-      issue: '181009038', // 当前奖期
-      multiple: 1 // 倍数
-    },
-    [ZHONG_SAN_WAY_ID]: {
-
-    },
-    [HOU_SAN_WAY_ID]: {
-
-    }
-  }
-];
 
 // 连接数据库
 function linkDB() {
@@ -503,210 +495,72 @@ function selectDB(database) {
   request.onsuccess = function(event) {
     token = request.result;
     console.log('--查询token成功--');
-    // 投注
-    // queryIssue(token);
-
-    // 查询上一把结果
-    //getPreIssuesResult(9);
 
     // 查询可用余额
     // getAvailable();
 
     // 查询当天成本金额
-    getTransaction();
+    // getTransaction();
   };
   request.onerror = function(event) {
     console.log('==查询token错误==：' + request.error);
   };
 };
-// 查询投注的奖期
-function queryIssue(token, lotteryId) {
-  console.log('--开始查询[' + GAMES_ID[lotteryId] + ']投注奖期--');
-  Zepto.ajax({
-    type: 'POST',
-    url:  'https://api.chunqiu1.com/games/issue?enable=1',
-    dataType: 'json',
-    headers: {
-      Accept: 'application/vnd.chunqiu.v1+json'
-    },
-    data: {
-      lottery_id: lotteryId
-    },
-    success: function (res) {
-      if (res.isSuccess && res.data.cur_issue) {
-        console.log('--[' + GAMES_ID[lotteryId] + ']投注奖期为:[ ' + res.data.cur_issue + ']--');
-        beginBet(token, lotteryId, res.data.cur_issue);
-      } else {
-        console.log('==查询下注奖期失败1==：', res);
-      }
-    },
-    error: function (error) {
-      console.log('==查询下注奖期失败2==：', error);
-    }
-  });
-};
-// 投注
-function beginBet(token, gameId, issue) {
-  /*
-  var dataObj = {
-    uuid: "",
-    bet_source: "browser",
-    isTrace: 0,
-    is_encoded: 1,
-    traceStopValue: 1, 
-    traceWinStop: 1, 
-    gameId: 1, // 城市时时彩游戏id
-    amount: 0.12, // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
-    orders: {
-      181009038: 1 // key: 要投注的奖期
-    },
-    balls: [
-      {
-        ball: "38", // 投注的组合数字, 全投注："0123456789"
-        moneyunit: 0.01, // 投注的单位
-        multiple: 1, // 投注的倍数
-        num: 6, // 一共投多少注, 全投注：90
-        onePrice: 2, // 一注的价钱
-        prize_group: 1956, // 奖金组
-        wayId: 16 // 组合玩法的id
-      }
-    ]
-  };
-  */
-
-  var balls = [{
-    ball: "68", // 投注的数字
-    moneyunit: 0.01, // 投注的单位
-    multiple: 1, // 投注的倍数
-    num: 2, // 一共投多少注
-    onePrice: 2, // 一注的价钱
-    prize_group: 1956, // 奖金组
-    wayId: 49 // 组合玩法的id
-  }];
-  var encryptObj = CryptoJS.AES.encrypt(JSON.stringify(balls), CryptoJS.enc.Utf8.parse("C194V1RBJG8MJPEL"), {
-                        iv: CryptoJS.enc.Utf8.parse("ARC49SBQE76B8QZT"),
-                        mode: CryptoJS.mode.CBC,
-                        padding: CryptoJS.pad.Pkcs7
-                    });
-  balls = encryptObj.toString();
-
-  Zepto.ajax({
-    type: 'POST',
-    url:  'https://api.chunqiu1.com/games/bet',
-    dataType: 'json',
-    headers: {
-      Accept: 'application/vnd.chunqiu.v1+json',
-      Authorization: 'Bearer ' + token
-    },
-    data: {
-      "isTrace": 0,
-      "is_encoded": 1, 
-      "orders": {
-        "18100922": 1
-      },
-      "traceStopValue": 1, 
-      "traceWinStop": 1, 
-      "bet_source": "browser", 
-      "uuid": "", 
-      "amount": 0.04, 
-      "balls": balls,
-      "gameId": 6
-    },
-    success: function (res) {
-      console.log('投注成功：', res);
-    },
-    error: function (error) {
-
-    }
-  });
-};
-
-// 获取上一把投注结果
-function getPreIssuesResult(pageSize) {
-  var d = new Date();
-  var year = d.getFullYear();
-  var month = d.getMonth() + 1;
-  var day = d.getDate();
-  month = (month > 9 ? month : '0' + month);
-  day = (day > 9 ? day : '0' + day);
-
-  d.setTime(d.getTime() + 24*60*60*1000);
-  var nextYear = d.getFullYear();
-  var nextMonth = d.getMonth() + 1;
-  var nextDay = d.getDate();
-  nextMonth = (nextMonth > 9 ? nextMonth : '0' + nextMonth);
-  nextDay = (nextDay > 9 ? nextDay : '0' + nextDay);
-
-  var params = `start=${year}-${month}-${day} 08:00:00&end=${nextYear}-${nextMonth}-${nextDay} 03:00:00&lottery_id=0&page=1&page_size=${pageSize}`;
-  Zepto.ajax({
-    type: 'GET',
-    url:  'https://api.chunqiu1.com/reports/project?' + params,
-    dataType: 'json',
-    headers: {
-      Accept: 'application/vnd.chunqiu.v1+json',
-      Authorization: 'Bearer ' + token
-    },
-    success: function (res) {
-      console.log('--查询上一把投注结果成功--');
-    },
-    error: function (error) {
-      console.log('--查询上一把投注结果失败--');
-    }
-  });
-};
 
 // 查询可用余额
 function getAvailable() {
-  Zepto.ajax({
-    type: 'GET',
-    url:  'https://api.chunqiu1.com/users/available',
-    dataType: 'json',
-    headers: {
-      Accept: 'application/vnd.chunqiu.v1+json',
-      Authorization: 'Bearer ' + token
-    },
-    success: function (res) {
-      console.log('--查询可用余额成功--');
-    },
-    error: function (error) {
-      console.log('--查询可用余额失败--');
-    }
+  return new Promise(function(resolve, reject){
+    http('GET', 'https://api.chunqiu1.com/users/available').then(function(res){
+      if (res && res.isSuccess && res.data) {
+        var available = Number(Number(res.data.available).toFixed(2));
+        console.log('--查询可用余额成功--:', available);
+        resolve(available);
+      } else {
+        reject(res);
+      }
+    }).catch(function(err){
+      console.log('==查询可用余额失败==:', err);
+      reject(err);
+    });
   });
 };
 
 // 查询当天成本金额
 function getTransaction() {
-  var d = new Date();
-  var year = d.getFullYear();
-  var month = d.getMonth() + 1;
-  var day = d.getDate();
-  month = (month > 9 ? month : '0' + month);
-  day = (day > 9 ? day : '0' + day);
+  return new Promise(function(resolve, reject){
+    var d = new Date();
+    var year = d.getFullYear();
+    var month = d.getMonth() + 1;
+    var day = d.getDate();
+    month = (month > 9 ? month : '0' + month);
+    day = (day > 9 ? day : '0' + day);
 
-  d.setTime(d.getTime() + 24*60*60*1000);
-  var nextYear = d.getFullYear();
-  var nextMonth = d.getMonth() + 1;
-  var nextDay = d.getDate();
-  nextMonth = (nextMonth > 9 ? nextMonth : '0' + nextMonth);
-  nextDay = (nextDay > 9 ? nextDay : '0' + nextDay);
-
-  var params = `start=${year}-${month}-${day} 08:00:00&end=${nextYear}-${nextMonth}-${nextDay} 03:00:00&type_id=1&page=1&page_size=1`;
-  params = `start=2018-10-07 08:00:00&end=2018-10-08 03:00:00&type_id=1&page=1&page_size=1`;
-  Zepto.ajax({
-    type: 'GET',
-    url:  'https://api.chunqiu1.com/reports/transaction?' + params,
-    dataType: 'json',
-    headers: {
-      Accept: 'application/vnd.chunqiu.v1+json',
-      Authorization: 'Bearer ' + token
-    },
-    success: function (res) {
-      console.log('--查询当天成本金额成功--');
-      // 获取第一条记录的available即是今天成本金额
-    },
-    error: function (error) {
-      console.log('--查询当天成本金额失败--');
-    }
+    var params = `start=${year}-${month}-${day} 08:00:00&end=${year}-${month}-${day} 23:59:59&type_id=1&page=1&page_size=1`;
+    // params = `start=2018-10-07 08:00:00&end=2018-10-08 03:00:00&type_id=1&page=1&page_size=1`;
+    http('GET', 'https://api.chunqiu1.com/reports/transaction?' + params).then(function(res){
+      if (res && res.isSuccess && res.data && res.data.data) {
+        var fillMoney = 0;
+        for (var i = 0; i < res.data.data.length; i++) {
+          var curData = res.data.data[i];
+          var dArr = curData.slice(0,10).split('-');
+          var d = new Date();
+          var year = d.getFullYear() + '';
+          var month = d.getMonth() + 1 + '';
+          var day = d.getDate() + '';
+          if (year === dArr[0] && month === dArr[1] && day === dArr[2]) {
+            fillMoney = fillMoney + curData.amount;
+          }
+        }
+        fillMoney = Number(Number(fillMoney).toFixed(2));
+        console.log('--查询当天充值总金额成功:--', fillMoney);
+        resolve(fillMoney);
+      } else {
+        reject(res);
+      }
+    }).catch(function(err){
+      console.log('==查询当天充值总金额失败==:', err);
+      reject(err);
+    });
   });
 };
 
