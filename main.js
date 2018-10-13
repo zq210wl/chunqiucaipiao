@@ -127,11 +127,11 @@ var betNextList = []; // 接下来需要投注的数据, 数据结构同betBegin
 /*************** 用户选项 - start ***************/
 var betToggle = 0; // 投注开关，开：1，关：0
 var preBetNum = 0; // 上一次投注数量, 需要用户自己输入，9的整数倍; 0就是重新开始
-var stopGainMoney = 0; // 盈利多少钱就停止所有的下注
-var abandonAddMoney = 0; // 盈利多少钱就放弃再分的把数
+var stopGainMoney = 1000; // 盈利多少钱就停止所有的下注
+var abandonAddMoney = 500; // 盈利多少钱就放弃再分的把数
 var curUserAvaliable = 0; // 当前用户的可用余额
 var curUserFillMoney = 0; // 当前用户的充值总金额
-var canBeginBet = 0; // 是否可以开始投注了，可以：1，不可以：0
+var curUserGainMoney = 0; // 当前用户赢利额
 
 var wrongTipTxt = ''; // 错误提示文本
 /*************** 用户选项 - end ***************/
@@ -308,6 +308,9 @@ function getDefaultData(cityDatas) {
 function getDataFromAdd(dataArr) {
   var processedData = [];
   var needSplitNum = 0;
+  if (curUserGainMoney >= abandonAddMoney) {
+    dataArr = dataArr.slice(0, 9);
+  }
   for (var i = 0; i < dataArr.length, i++) {
     var curData = Object.assign({}, dataArr[i]);
     if (curData.multiple >= splitMultiple) {
@@ -365,6 +368,8 @@ function betAPI(index, dataArr) {
       }, 100);
     } else {
       preBetNum = dataArr.length;
+      // 动态修改dom的值
+      setPreNumInputDom(preBetNum);
       console.log('--全部投注成功，当前一共[' + preBetNum + ']条投注--');
       if (betToggle === 1) {
         setTimeout(function() {
@@ -417,13 +422,41 @@ function invokeBetValidate() {
     getMoney().then(function(){
       // 校验是否满足可以投注条件: 总盈利小于设置的值且余额必须大于50
       if (curUserAvaliable < 50) {
-        // 提示
         wrongTipTxt = '账户余额必须大于50元';
         reject(wrongTipTxt);
         return;
       }
-      // TODO: 校验必须的选项是否都设置了
-
+      // 校验必须的选项是否都设置了
+      if (betToggle === 0) {
+        reject(wrongTipTxt);
+        return;
+      }
+      if (preBetNum ％ 9 !== 0) {
+        wrongTipTxt = '跟投历史条数必须是9的倍数';
+        reject(wrongTipTxt);
+        return;
+      }
+      if (stopGainMoney <= 0) {
+        wrongTipTxt = '盈利多少钱就停止所有的下注的值必须大于0';
+        reject(wrongTipTxt);
+        return;
+      }
+      if (abandonAddMoney <= 0) {
+        wrongTipTxt = '盈利多少钱就放弃再分的把数的值必须大于0';
+        reject(wrongTipTxt);
+        return;
+      }
+      if (curUserGainMoney >= stopGainMoney) {
+        wrongTipTxt = '您目前赢利额已经大于或等于' + stopGainMoney + '元了，不能再玩了，如果还要玩，请调整盈利额参数';
+        reject(wrongTipTxt);
+        return;
+      }
+      // 设置按钮状态
+      setBeginBetDomDisabled(true);
+      setStopBetDomDisabled(false);
+      // 打开投注开关
+      betToggle = 1;
+      resolve();
     }).catch(function(err){
       reject(err);
     });
@@ -433,86 +466,45 @@ function invokeBetValidate() {
 // 得到三个城市的下一期要投注的数据并投注
 function getNextAndBet() {
   invokeBetValidate().then(function(){
-    Promise.all([ 
-      requestPreResult(),
-      requestNextIssue(XIN_JINAG_ID),
-      requestNextIssue(CHONG_QING_ID),
-      requestNextIssue(HEI_LONG_JINAG_ID)
-    ]).then(function(resList){
-      var preData = resList[0];
-      var xinJiang = resList[1];
-      var chongQing = resList[2];
-      var heiLongJiang = resList[3];
-  
-      // 校验数据的正确性
-      if (!validatePreResult(preData) || !validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
-        return;
-      }
-      // 把数据倒序排列一下
-      var allProcessedData = [];
-      for (var i = preData.length; i > 0; i--) {
-        allProcessedData.push(preData[i]);
-      }
-  
-      var processedDataArr = processingData(allProcessedData, {
-        [XIN_JINAG_ID]: xinJiang, 
-        [CHONG_QING_ID]: chongQing, 
-        [HEI_LONG_JINAG_ID]: heiLongJiang
+    requestPreResult().then(function(preResult){
+      Promise.all([
+        requestNextIssue(XIN_JINAG_ID),
+        requestNextIssue(CHONG_QING_ID),
+        requestNextIssue(HEI_LONG_JINAG_ID)
+      ]).then(function(resList){
+        var preData = preResult;
+        var xinJiang = resList[0];
+        var chongQing = resList[1];
+        var heiLongJiang = resList[2];
+    
+        // 校验数据的正确性
+        if (!validatePreResult(preData) || !validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
+          return;
+        }
+        // 把数据倒序排列一下
+        var allProcessedData = [];
+        for (var i = preData.length; i > 0; i--) {
+          allProcessedData.push(preData[i]);
+        }
+    
+        var processedDataArr = processingData(allProcessedData, {
+          [XIN_JINAG_ID]: xinJiang, 
+          [CHONG_QING_ID]: chongQing, 
+          [HEI_LONG_JINAG_ID]: heiLongJiang
+        });
+    
+        excuteBet(processedDataArr);
+    
+      }).catch(function(err){
+        console.log('==投注失败==:', err);
       });
-  
-      excuteBet(processedDataArr);
-  
     }).catch(function(err){
-      console.log('==投注失败==:', err);
+      console.log(err);
     });
   }).catch(function(err){
     console.log(err);
-  });;
+  });
 }
-
-// 创建DOM，注册事件
-function createDoms() {
-  var cntDom = Zepto(`<div style="position: fixed;top: 0;left: 0;bottom: 0;right: 0;z-index: 1000;background: rgba(0,0,0,0.7);">
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
-      <legend>信息展示区域</legend>
-      当前余额：<label id="curAvaliableDom">97.08</label> <br/>
-      当天充值总金额：<label id="curFillMoneyDom">197.08</label> <br/>
-      当天赢利额：<label id="curGainDom">-97.08</label> <br/>
-    </fieldset>
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
-      <legend>选项区域</legend>
-      盈利多少钱就停止所有的下注：<br/> <input value='1000' style="color:#000;" /> <br/>
-      盈利多少钱就放弃再分的把数：<br/> <input value='500' style="color:#000;" /> <br/>
-      从历史投注的前多少条开始跟投(必须是0或9的倍数)：<br/> <input value='0' style="color:#000;" /> <br/>
-    </fieldset>
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
-      <legend>操作区域</legend>
-      <button id="beginBetDom" style="color: #000;height: 24px;" class="customButtom" >开始投注</button> <br/><br/>
-      <button id="stopBetDom" style="color: #000;height: 24px;" class="customButtom" >停止投注</button> <br/>
-    </fieldset>
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
-      <legend>错误和动态信息提示区域</legend>
-      当前程序执行状态：<br/> <label id="softExcuteStatusDom" style="color:green;">上一把投注已完成投注，正在监听下一把投注</label> <br/>
-      程序异常提示：<br/> <label id="softExcuteWrongDom" style="color:yellow;">xxxxxxxx</label> <br/>
-    </fieldset>
-  </div>`);
-  //var beginBetDom = Zepto('<button>开始投注</button>');
-  // 分：信息提示区域、选项区域、操作区域、错误信息提示区域
-  Zepto('head').append(`<style>
-    .customButtom {
-      position: relative;
-    }
-    .customButtom:hover {
-      background: green;
-    }
-    .customButtom:active {
-      left: 2px;
-      top: 2px;
-    }
-  </style>`);
-  Zepto('body').append(cntDom);
-}
-createDoms();
 
 /////////////////////////////////////
 
@@ -549,12 +541,11 @@ function selectDB(database) {
     getMoney().then(function(res){
       if (curUserAvaliable && curUserFillMoney) {
         // 环境就绪，可以开始投注
-        canBeginBet = 1;
+        initPageData();
       }
+    }).catch(function(err){
+      console.log(err);
     });
-
-    // TODO: 开始投注, 做成事件，让用户自己来点击开始
-    getNextAndBet();
   };
   request.onerror = function(event) {
     console.log('==查询token错误==：' + request.error);
@@ -627,14 +618,111 @@ function getMoney() {
     ]).then(function(resList){
       curUserAvaliable = resList[0];
       curUserFillMoney = resList[1];
-      resolve({
-        curUserAvaliable: curUserAvaliable,
-        curUserFillMoney: curUserFillMoney
-      });
+      curUserGainMoney = curUserAvaliable - curUserFillMoney;
+      resolve();
     }).catch(function(err){
       console.log('==投注失败==:', err);
     });
   });
+}
+
+// 创建DOM，注册事件
+function createDoms() {
+  // 分：信息提示区域、选项区域、操作区域、错误信息提示区域
+  var cntDom = Zepto(`<div style="position: fixed;top: 0;left: 0;bottom: 0;right: 0;z-index: 1000;background: rgba(0,0,0,0.7);">
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
+      <legend>信息展示区域</legend>
+      当前余额：<label id="curAvaliableDom">--</label> <br/>
+      当天充值总金额：<label id="curFillMoneyDom">--</label> <br/>
+      当天赢利额：<label id="curGainDom">--</label> <br/>
+    </fieldset>
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
+      <legend>选项区域</legend>
+      盈利多少钱就停止所有的下注：<br/> <input id="gainStopInputDom" value='0' style="color:#000;" /> <br/>
+      盈利多少钱就放弃再分的把数：<br/> <input id="gainAbandonInputDom" value='0' style="color:#000;" /> <br/>
+      从历史投注的前多少条开始跟投(必须是0或9的倍数)：<br/> <input id="preNumInputDom" value='0' style="color:#000;" /> <br/>
+    </fieldset>
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
+      <legend>操作区域</legend>
+      <button id="beginBetDom" style="color: #000;height: 24px;" class="customButtom" disabled>开始投注</button> <br/><br/>
+      <button id="stopBetDom" style="color: #000;height: 24px;" class="customButtom" disabled>停止投注</button> <br/>
+    </fieldset>
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
+      <legend>错误和动态信息提示区域</legend>
+      当前程序执行状态：<br/> <label id="softExcuteStatusDom" style="color:#ff77ff;">上一把投注已完成投注，正在监听下一把投注</label> <br/>
+      程序异常提示：<br/> <label id="softExcuteWrongDom" style="color:#00ff00;">xxxxxxxx</label> <br/>
+    </fieldset>
+  </div>`);
+  Zepto('head').append(`<style>
+    .customButtom {
+      position: relative;
+    }
+    .customButtom:hover {
+      background: green;
+    }
+    .customButtom:active {
+      left: 2px;
+      top: 2px;
+    }
+  </style>`);
+  Zepto('body').append(cntDom);
+  cntDom.find('#beginBetDom').click(function(){
+    if (confirm('你确定已经设置好了重要参数，现在要开始投注吗？')) {
+      getNextAndBet(); // 开始投注
+    }
+  });
+  cntDom.find('#stopBetDom').click(function(){
+    if (confirm('你确定要停止投注吗？')) {
+      betToggle = 0; // 停止投注
+      setBeginBetDomDisabled(false);
+      setStopBetDomDisabled(true);
+    }
+  });
+  cntDom.find('#gainStopInputDom').on('change', function(){
+    setGainStopInputDom(Number(Zepto(this).val()));
+  });
+  cntDom.find('#gainAbandonInputDom').on('change', function(){
+    setGainAbandonInputDom(Number(Zepto(this).val()));
+  });
+  cntDom.find('#preNumInputDom').on('change', function(){
+    setPreNumInputDom(Number(Zepto(this).val()));
+  });
+}
+createDoms();
+
+// 初始化页面中的动态数据
+function initPageData() {
+  setCurAvaliableDom(curUserAvaliable);
+  setCurFillMoneyDom(curUserFillMoney);
+  setCurGainDom(curUserGainMoney);
+  setGainStopInputDom(stopGainMoney);
+  setGainAbandonInputDom(abandonAddMoney);
+  setPreNumInputDom(preBetNum);
+  setBeginBetDomDisabled(false);
+}
+function setCurAvaliableDom(val) {
+  Zepto('#curAvaliableDom').html(val);
+}
+function setCurFillMoneyDom(val) {
+  Zepto('#curFillMoneyDom').html(val);
+}
+function setCurGainDom(val) {
+  Zepto('#curGainDom').html(val);
+}
+function setGainStopInputDom(val) {
+  Zepto('#gainStopInputDom').val(val);
+}
+function setGainAbandonInputDom(val) {
+  Zepto('#gainAbandonInputDom').val(val);
+}
+function setPreNumInputDom(val) {
+  Zepto('#preNumInputDom').val(val);
+}
+function setBeginBetDomDisabled(bool) {
+  Zepto('#beginBetDom').attr('disabled', bool);
+}
+function setStopBetDomDisabled(bool){
+  Zepto('#stopBetDom').attr('disabled', bool);
 }
 
 linkDB();
