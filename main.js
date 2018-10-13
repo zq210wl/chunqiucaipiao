@@ -465,44 +465,38 @@ function invokeBetValidate() {
 
 // 得到三个城市的下一期要投注的数据并投注
 function getNextAndBet() {
-  invokeBetValidate().then(function(){
-    requestPreResult().then(function(preResult){
-      Promise.all([
-        requestNextIssue(XIN_JINAG_ID),
-        requestNextIssue(CHONG_QING_ID),
-        requestNextIssue(HEI_LONG_JINAG_ID)
-      ]).then(function(resList){
-        var preData = preResult;
-        var xinJiang = resList[0];
-        var chongQing = resList[1];
-        var heiLongJiang = resList[2];
-    
-        // 校验数据的正确性
-        if (!validatePreResult(preData) || !validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
-          return;
-        }
-        // 把数据倒序排列一下
-        var allProcessedData = [];
-        for (var i = preData.length; i > 0; i--) {
-          allProcessedData.push(preData[i]);
-        }
-    
-        var processedDataArr = processingData(allProcessedData, {
-          [XIN_JINAG_ID]: xinJiang, 
-          [CHONG_QING_ID]: chongQing, 
-          [HEI_LONG_JINAG_ID]: heiLongJiang
-        });
-    
-        excuteBet(processedDataArr);
-    
-      }).catch(function(err){
-        console.log('==投注失败==:', err);
+  invokeBetValidate().then(requestPreResult).then(function(preResult){
+    Promise.all([
+      requestNextIssue(XIN_JINAG_ID),
+      requestNextIssue(CHONG_QING_ID),
+      requestNextIssue(HEI_LONG_JINAG_ID)
+    ]).then(function(resList){
+      var preData = preResult;
+      var xinJiang = resList[0];
+      var chongQing = resList[1];
+      var heiLongJiang = resList[2];
+  
+      // 校验数据的正确性
+      if (!validatePreResult(preData) || !validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
+        return;
+      }
+      // 把数据倒序排列一下
+      var allProcessedData = [];
+      for (var i = preData.length; i > 0; i--) {
+        allProcessedData.push(preData[i]);
+      }
+  
+      var processedDataArr = processingData(allProcessedData, {
+        [XIN_JINAG_ID]: xinJiang, 
+        [CHONG_QING_ID]: chongQing, 
+        [HEI_LONG_JINAG_ID]: heiLongJiang
       });
+  
+      excuteBet(processedDataArr);
+  
     }).catch(function(err){
-      console.log(err);
+      console.log('==投注失败==:', err);
     });
-  }).catch(function(err){
-    console.log(err);
   });
 }
 
