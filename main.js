@@ -125,8 +125,15 @@ var betNextList = []; // 接下来需要投注的数据, 数据结构同betBegin
 /*************** 投注需要用到的数据 - end ***************/
 
 /*************** 用户选项 - start ***************/
-var preBetNum = 0; // 上一次投注数量, 可选项有：0, 9, 18; 0就是重新开始
+var betToggle = 0; // 投注开关，开：1，关：0
+var preBetNum = 0; // 上一次投注数量, 需要用户自己输入，9的整数倍; 0就是重新开始
+var stopGainMoney = 0; // 盈利多少钱就不完来
+var curUserAvaliable = 0; // 当前用户的可用余额
+var curUserFillMoney = 0; // 当前用户的充值总金额
+var abandonAddMoney = 0; // 盈利多少钱就放弃再分的条数
+var canBeginBet = 0; // 是否可以开始投注了，可以：1，不可以：0
 
+var wrongTipTxt = ''; // 错误提示文本
 /*************** 用户选项 - end ***************/
 
 function retry(resolve, reject, method, url, data, retryAttempt) {
@@ -247,10 +254,12 @@ function validatePreResult(preData) {
 // 校验下一期数据的有效性
 function validateNextIssue(xinJiang, chongQing, heiLongJiang) {
   var limitTime = 36 + (preBetNum / 9) * 10;
+  var d = new Date();
+  var curTime = d.getTime() / 1000;
   if (
-      (xinJiang.cur_issue_time - xinJiang.cur_time < limitTime) || 
-      (chongQing.cur_issue_time - chongQing.cur_time < limitTime) || 
-      (heiLongJiang.cur_issue_time - heiLongJiang.cur_time < limitTime)
+      (xinJiang.cur_issue_time - xinJiang.curTime < limitTime) || 
+      (chongQing.cur_issue_time - chongQing.curTime < limitTime) || 
+      (heiLongJiang.cur_issue_time - heiLongJiang.curTime < limitTime)
   ) {
     console.log('==投注剩余时间不够，没有执行投注==');
     return false;
@@ -269,65 +278,30 @@ function getNormalMultipleNextData(multiple) {
 
 // 获取默认重新开始数据
 function getDefaultData(cityDatas) {
-  return [
-    // 新疆
-    {
-      issue: cityDatas[XIN_JINAG_ID].issue,
+  var dataArr = [];
+  // 顺序一定不能变化
+  var lotteryIdArr = [XIN_JINAG_ID, CHONG_QING_ID, HEI_LONG_JINAG_ID];
+  for (var i = 0; i < lotteryIdArr.length; i++) {
+    var curLotteryId = lotteryIdArr[i];
+    dataArr.push({
+      issue: cityDatas[curLotteryId].issue,
       wayId: QIAN_SAN_WAY_ID,
-      lotteryId: XIN_JINAG_ID,
+      lotteryId: curLotteryId,
       multiple: 1
-    },
-    {
-      issue: cityDatas[XIN_JINAG_ID].issue,
+    },{
+      issue: cityDatas[curLotteryId].issue,
       wayId: ZHONG_SAN_WAY_ID,
-      lotteryId: XIN_JINAG_ID,
+      lotteryId: curLotteryId,
       multiple: 1
     },
     {
-      issue: cityDatas[XIN_JINAG_ID].issue,
+      issue: cityDatas[curLotteryId].issue,
       wayId: HOU_SAN_WAY_ID,
-      lotteryId: XIN_JINAG_ID,
+      lotteryId: curLotteryId,
       multiple: 1
-    },
-    // 重庆
-    {
-      issue: cityDatas[CHONG_QING_ID].issue,
-      wayId: QIAN_SAN_WAY_ID,
-      lotteryId: CHONG_QING_ID,
-      multiple: 1
-    },
-    {
-      issue: cityDatas[CHONG_QING_ID].issue,
-      wayId: ZHONG_SAN_WAY_ID,
-      lotteryId: CHONG_QING_ID,
-      multiple: 1
-    },
-    {
-      issue: cityDatas[CHONG_QING_ID].issue,
-      wayId: HOU_SAN_WAY_ID,
-      lotteryId: CHONG_QING_ID,
-      multiple: 1
-    },
-    // 黑龙江
-    {
-      issue: cityDatas[HEI_LONG_JINAG_ID].issue,
-      wayId: QIAN_SAN_WAY_ID,
-      lotteryId: HEI_LONG_JINAG_ID,
-      multiple: 1
-    },
-    {
-      issue: cityDatas[HEI_LONG_JINAG_ID].issue,
-      wayId: ZHONG_SAN_WAY_ID,
-      lotteryId: HEI_LONG_JINAG_ID,
-      multiple: 1
-    },
-    {
-      issue: cityDatas[HEI_LONG_JINAG_ID].issue,
-      wayId: HOU_SAN_WAY_ID,
-      lotteryId: HEI_LONG_JINAG_ID,
-      multiple: 1
-    }
-  ]
+    });
+  }
+  return dataArr;
 }
 
 // 基于之前历史数据上来获取数据(拆分逻辑)
@@ -383,12 +357,20 @@ function betAPI(index, dataArr) {
   });
   data.ball = encryptObj.toString();
   http('POST', 'https://api.chunqiu1.com/games/bet', data: data).then(function(res){
-    console.log('==投注成功[' + index + ']==');
+    console.log('==第[' + index + ']条投注成功==');
     index++;
     if (index < dataArr.length) {
       setTimeout(function(){
         betAPI(index, dataArr);
       }, 100);
+    } else {
+      preBetNum = dataArr.length;
+      console.log('--全部投注成功，当前一共[' + preBetNum + ']条投注--');
+      if (betToggle === 1) {
+        setTimeout(function() {
+          getNextAndBet();
+        }, 5000);
+      }
     }
   }).catch(function(err){
     reject('==投注失败==:', err);
@@ -429,40 +411,63 @@ function excuteBet(dataArr) {
   // betAPI(0, processedDataArr);
 }
 
+// 调用投注之前的数据检查
+function invokeBetValidate() {
+  return new Promise(function(resolve, reject){
+    getMoney().then(function(){
+      // 校验是否满足可以投注条件: 总盈利小于设置的值且余额必须大于50
+      if (curUserAvaliable < 50) {
+        // 提示
+        wrongTipTxt = '账户余额必须大于50元';
+        reject(wrongTipTxt);
+        return;
+      }
+      // TODO: 校验必须的选项是否都设置了
+
+    }).catch(function(err){
+      reject(err);
+    });
+  });
+}
+
 // 得到三个城市的下一期要投注的数据并投注
 function getNextAndBet() {
-  Promise.all([ 
-    requestPreResult(),
-    requestNextIssue(XIN_JINAG_ID),
-    requestNextIssue(CHONG_QING_ID),
-    requestNextIssue(HEI_LONG_JINAG_ID) 
-  ]).then(function(resList){
-    var preData = resList[0];
-    var xinJiang = resList[1];
-    var chongQing = resList[2];
-    var heiLongJiang = resList[3];
-
-    // 校验数据的正确性
-    if (!validatePreResult(preData) || !validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
-      return;
-    }
-    // 把数据倒序排列一下
-    var allProcessedData = [];
-    for (var i = preData.length; i > 0; i--) {
-      allProcessedData.push(preData[i]);
-    }
-
-    var processedDataArr = processingData(allProcessedData, {
-      [XIN_JINAG_ID]: xinJiang, 
-      [CHONG_QING_ID]: chongQing, 
-      [HEI_LONG_JINAG_ID]: heiLongJiang
+  invokeBetValidate().then(function(){
+    Promise.all([ 
+      requestPreResult(),
+      requestNextIssue(XIN_JINAG_ID),
+      requestNextIssue(CHONG_QING_ID),
+      requestNextIssue(HEI_LONG_JINAG_ID)
+    ]).then(function(resList){
+      var preData = resList[0];
+      var xinJiang = resList[1];
+      var chongQing = resList[2];
+      var heiLongJiang = resList[3];
+  
+      // 校验数据的正确性
+      if (!validatePreResult(preData) || !validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
+        return;
+      }
+      // 把数据倒序排列一下
+      var allProcessedData = [];
+      for (var i = preData.length; i > 0; i--) {
+        allProcessedData.push(preData[i]);
+      }
+  
+      var processedDataArr = processingData(allProcessedData, {
+        [XIN_JINAG_ID]: xinJiang, 
+        [CHONG_QING_ID]: chongQing, 
+        [HEI_LONG_JINAG_ID]: heiLongJiang
+      });
+  
+      excuteBet(processedDataArr);
+  
+    }).catch(function(err){
+      console.log('==投注失败==:', err);
     });
-
-    excuteBet(processedDataArr);
-
   }).catch(function(err){
-    console.log('==投注失败==:', err);
-  });
+    console.log(err);
+  });;
 }
 
 /////////////////////////////////////
@@ -496,11 +501,16 @@ function selectDB(database) {
     token = request.result;
     console.log('--查询token成功--');
 
-    // 查询可用余额
-    // getAvailable();
+    // 查询钱相关数据
+    getMoney().then(function(res){
+      if (curUserAvaliable && curUserFillMoney) {
+        // 环境就绪，可以开始投注
+        canBeginBet = 1;
+      }
+    });
 
-    // 查询当天成本金额
-    // getTransaction();
+    // TODO: 开始投注, 做成事件，让用户自己来点击开始
+    getNextAndBet();
   };
   request.onerror = function(event) {
     console.log('==查询token错误==：' + request.error);
@@ -525,7 +535,7 @@ function getAvailable() {
   });
 };
 
-// 查询当天成本金额
+// 查询当天充值总金额
 function getTransaction() {
   return new Promise(function(resolve, reject){
     var d = new Date();
@@ -563,5 +573,24 @@ function getTransaction() {
     });
   });
 };
+
+// 获取可以余额、充值总结、盈利额
+function getMoney() {
+  return new Promise(function(resolve, reject){
+    Promise.all([ 
+      getAvailable(),
+      getTransaction()
+    ]).then(function(resList){
+      curUserAvaliable = resList[0];
+      curUserFillMoney = resList[1];
+      resolve({
+        curUserAvaliable: curUserAvaliable,
+        curUserFillMoney: curUserFillMoney
+      });
+    }).catch(function(err){
+      console.log('==投注失败==:', err);
+    });
+  });
+}
 
 linkDB();
