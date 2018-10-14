@@ -109,19 +109,6 @@ var betCommon = { // 默认公共投注数据
   num: 90, // 一共投多少注, 全投注：90
   prize_group: 1956 // 奖金组
 };
-var betBegin = { // 默认起投的数据
-  gameId: XIN_JINAG_ID, // 城市时时彩游戏id
-  wayId: QIAN_SAN_WAY_ID, // 组合玩法的id
-  multiple: 1, // 投注的倍数
-  amount: 1.8, // 总投注金额 = bet_num * multipleVal * moneyUnit * 2
-  done: false // 是否已下注
-};
-var betNextIssues = { // 三个城市接下来要投注的奖期
-  [XIN_JINAG_ID]: 0,
-  [CHONG_QING_ID]: 0,
-  [HEI_LONG_JINAG_ID]: 0
-};
-var betNextList = []; // 接下来需要投注的数据, 数据结构同betBegin
 /*************** 投注需要用到的数据 - end ***************/
 
 /*************** 用户选项 - start ***************/
@@ -161,7 +148,7 @@ function retry(resolve, reject, method, url, data, retryAttempt) {
   });
 }
 function http(method, url, data) {
-  return new Promsie(function(resolve, reject){
+  return new Promise(function(resolve, reject){
     retry(resolve, reject, method, url, data, 1);
   });
 }
@@ -208,6 +195,7 @@ function requestPreResult() {
         reject(err);
       });
     }
+    requestProject();
   });
 }
 
@@ -424,11 +412,6 @@ function excuteBet(dataArr) {
 function invokeBetValidate() {
   return new Promise(function(resolve, reject){
     getMoney().then(function(){
-      if (betToggle === 0) {
-        wrongTipTxt = '已经停止投注了';
-        reject(wrongTipTxt);
-        return;
-      }
       if (curUserAvaliable < 50) {
         wrongTipTxt = '账户余额必须大于50元';
         setSoftExcuteWrongDom(wrongTipTxt);
@@ -551,7 +534,7 @@ function selectDB(database) {
 
     // 查询钱相关数据
     getMoney().then(function(res){
-      if (curUserAvaliable && curUserFillMoney) {
+      if (curUserAvaliable) {
         // 环境就绪，可以开始投注
         initPageData();
       }
@@ -685,7 +668,7 @@ function createDoms() {
   Zepto('body').append(cntDom);
   cntDom.find('#beginBetDom').click(function(){
     if (confirm('你确定选项已经检查无误可以开始投注了吗？')) {
-      setSoftExcuteWrongDom('--'); // 充值错误信息
+      setSoftExcuteWrongDom('--'); // 重置错误信息
       getNextAndBet(); // 开始投注
     }
   });
@@ -698,13 +681,13 @@ function createDoms() {
     }
   });
   cntDom.find('#gainStopInputDom').on('change', function(){
-    setGainStopInputDom(Number(Zepto(this).val()));
+    stopGainMoney = Number(Zepto(this).val());
   });
   cntDom.find('#gainAbandonInputDom').on('change', function(){
-    setGainAbandonInputDom(Number(Zepto(this).val()));
+    abandonAddMoney = Number(Zepto(this).val());
   });
   cntDom.find('#preNumInputDom').on('change', function(){
-    setPreNumInputDom(Number(Zepto(this).val()));
+    preBetNum = Number(Zepto(this).val());
   });
 }
 // createDoms();
@@ -739,10 +722,18 @@ function setPreNumInputDom(val) {
   Zepto('#preNumInputDom').val(val);
 }
 function setBeginBetDomDisabled(bool) {
-  Zepto('#beginBetDom').attr('disabled', bool);
+  if (bool) {
+    Zepto('#beginBetDom').attr('disabled', true);
+  } else {
+    Zepto('#beginBetDom').removeAttr('disabled');
+  }
 }
 function setStopBetDomDisabled(bool){
-  Zepto('#stopBetDom').attr('disabled', bool);
+  if (bool) {
+    Zepto('#stopBetDom').attr('disabled', true);
+  } else {
+    Zepto('#stopBetDom').removeAttr('disabled');
+  }
 }
 function setSoftExcuteStatusDom(val){
   Zepto('#softExcuteStatusDom').html(val);
