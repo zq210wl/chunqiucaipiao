@@ -445,15 +445,19 @@ function invokeBetValidate() {
         return;
       }
       if (curUserGainMoney >= stopGainMoney) {
-        wrongTipTxt = '您目前赢利额已经大于或等于' + stopGainMoney + '元了，不能再玩了，如果还要玩，请调整盈利额参数';
+        wrongTipTxt = '您目前赢利额已经大于或等于' + stopGainMoney + '元了，不能再玩了，程序已经自动停止。如果还要玩，请调整盈利额参数';
         setSoftExcuteWrongDom(wrongTipTxt);
+        // 程序运行过程中触发此条件后
+        setBeginBetDomDisabled(false);
+        setStopBetDomDisabled(true);
+        setSoftExcuteStatusDom('已停止投注');
         reject(wrongTipTxt);
         return;
       }
-      // 设置按钮状态
+      // 验证通过之后，设置按钮状态
       setBeginBetDomDisabled(true);
       setStopBetDomDisabled(false);
-      // 打开投注开关
+      // 验证通过之后，打开投注开关
       betToggle = 1;
       if (preBetNum !== 0) {
         setSoftExcuteStatusDom('正在等待开奖结果');
@@ -636,27 +640,36 @@ function getMoney() {
 function createDoms() {
   // 分：信息提示区域、选项区域、操作区域、错误信息提示区域
   var cntDom = Zepto(`<div style="position: fixed;top: 0;left: 0;bottom: 0;right: 0;z-index: 1000;background: rgba(0,0,0,0.7);">
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 14px;">
       <legend>信息展示区域</legend>
       当前余额：<label id="curAvaliableDom" style="color: #00ff00">--</label> <br/>
       当天充值总金额：<label id="curFillMoneyDom" style="color: #00ff00">--</label> <br/>
       当天赢利额：<label id="curGainDom" style="color: #00ff00">--</label> <br/>
     </fieldset>
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 14px;">
       <legend>选项区域</legend>
       盈利多少钱就停止所有的下注：<br/> <input id="gainStopInputDom" value='0' style="color:#000;" /> <br/>
       盈利多少钱就放弃再分的把数：<br/> <input id="gainAbandonInputDom" value='0' style="color:#000;" /> <br/>
       从历史投注的前多少条开始跟投(必须是0或9的倍数)：<br/> <input id="preNumInputDom" value='0' style="color:#000;" /> <br/>
     </fieldset>
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 14px;">
       <legend>操作区域</legend>
       <button id="beginBetDom" style="color: #000;height: 24px;" class="customButtom" disabled>开始投注</button> <br/><br/>
       <button id="stopBetDom" style="color: #000;height: 24px;" class="customButtom" disabled>停止投注</button> <br/>
     </fieldset>
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 14px;">
       <legend>错误和动态信息提示区域</legend>
       当前程序执行状态：<br/> <label id="softExcuteStatusDom" style="color:lightgreen;">--</label> <br/>
       程序异常提示：<br/> <label id="softExcuteWrongDom" style="color:#00ff00;">--</label> <br/>
+    </fieldset>
+    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 12px;">
+      <legend>特别注意事项</legend>
+      一、要让程序接着上一把来跟投，必须要遵守以下约定，否则后果自负：<br/>
+      1、上一把从下往上顺序必须是：A城市的前中后、B城市的前中后、C城市的前中后、...;
+      2、上一把的条数必须是9的倍数;
+      3、上一把投出去的倍数必须要在表中能找到; <br/>
+      二、本程序不能跨天玩，当天收盘之后必须要把余额全部提现，不然会导致下一天的金额计算错误;<br/>
+      三、如果有一个城市当天已经到达收盘时间，那么也不能用本程序也玩了，如果要玩需要自己手动去操作;
     </fieldset>
   </div>`);
   Zepto('head').append(`<style>
