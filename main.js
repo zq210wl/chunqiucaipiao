@@ -204,7 +204,8 @@ function requestPreResult() {
           reject('==查询上一把投注结果失败1==');
         }
       }).catch(function(err){
-        reject('==查询上一把投注结果失败2==');
+        console.log('==查询上一把投注结果失败2==');
+        reject(err);
       });
     }
   });
@@ -367,9 +368,11 @@ function betAPI(index, dataArr) {
         betAPI(index, dataArr);
       }, 100);
     } else {
+      // 动态历史跟投数量
       preBetNum = dataArr.length;
-      // 动态修改dom的值
       setPreNumInputDom(preBetNum);
+
+      setSoftExcuteStatusDom('投注成功完成');
       console.log('--全部投注成功，当前一共[' + preBetNum + ']条投注--');
       if (betToggle === 1) {
         setTimeout(function() {
@@ -378,7 +381,7 @@ function betAPI(index, dataArr) {
       }
     }
   }).catch(function(err){
-    reject('==投注失败==:', err);
+    reject(err);
   });
 }
 
@@ -412,6 +415,7 @@ function excuteBet(dataArr) {
       ]
     });
   }
+  setSoftExcuteStatusDom('正在投注中，请务必保持网络畅通');
   // 执行投注API
   // betAPI(0, processedDataArr);
 }
@@ -420,34 +424,38 @@ function excuteBet(dataArr) {
 function invokeBetValidate() {
   return new Promise(function(resolve, reject){
     getMoney().then(function(){
-      // 校验是否满足可以投注条件: 总盈利小于设置的值且余额必须大于50
-      if (curUserAvaliable < 50) {
-        wrongTipTxt = '账户余额必须大于50元';
+      if (betToggle === 0) {
+        wrongTipTxt = '已经停止投注了';
         reject(wrongTipTxt);
         return;
       }
-      // 校验必须的选项是否都设置了
-      if (betToggle === 0) {
+      if (curUserAvaliable < 50) {
+        wrongTipTxt = '账户余额必须大于50元';
+        setSoftExcuteWrongDom(wrongTipTxt);
         reject(wrongTipTxt);
         return;
       }
       if (preBetNum ％ 9 !== 0) {
         wrongTipTxt = '跟投历史条数必须是9的倍数';
+        setSoftExcuteWrongDom(wrongTipTxt);
         reject(wrongTipTxt);
         return;
       }
       if (stopGainMoney <= 0) {
         wrongTipTxt = '盈利多少钱就停止所有的下注的值必须大于0';
+        setSoftExcuteWrongDom(wrongTipTxt);
         reject(wrongTipTxt);
         return;
       }
       if (abandonAddMoney <= 0) {
         wrongTipTxt = '盈利多少钱就放弃再分的把数的值必须大于0';
+        setSoftExcuteWrongDom(wrongTipTxt);
         reject(wrongTipTxt);
         return;
       }
       if (curUserGainMoney >= stopGainMoney) {
         wrongTipTxt = '您目前赢利额已经大于或等于' + stopGainMoney + '元了，不能再玩了，如果还要玩，请调整盈利额参数';
+        setSoftExcuteWrongDom(wrongTipTxt);
         reject(wrongTipTxt);
         return;
       }
@@ -456,6 +464,9 @@ function invokeBetValidate() {
       setStopBetDomDisabled(false);
       // 打开投注开关
       betToggle = 1;
+      if (preBetNum !== 0) {
+        setSoftExcuteStatusDom('正在等待开奖结果');
+      }
       resolve();
     }).catch(function(err){
       reject(err);
@@ -466,6 +477,11 @@ function invokeBetValidate() {
 // 得到三个城市的下一期要投注的数据并投注
 function getNextAndBet() {
   invokeBetValidate().then(requestPreResult).then(function(preResult){
+    if (preBetNum !== 0) {
+      setSoftExcuteStatusDom('开奖结果已出，正在计算下一把投注数据');
+    } else {
+      setSoftExcuteStatusDom('正在计算投注数据');
+    }
     Promise.all([
       requestNextIssue(XIN_JINAG_ID),
       requestNextIssue(CHONG_QING_ID),
@@ -495,7 +511,8 @@ function getNextAndBet() {
       excuteBet(processedDataArr);
   
     }).catch(function(err){
-      console.log('==投注失败==:', err);
+      setSoftExcuteWrongDom('投注异常，请手工去检查目前投注数据状况并完成投注');
+      console.log('==投注异常==:', err);
     });
   });
 }
@@ -513,6 +530,7 @@ function linkDB() {
     selectDB(database);
   };
   request.onerror = function (evt) {
+    setSoftExcuteWrongDom('连接数据库异常');
     console.log('==连接数据库异常==: ', evt.target.errorCode);
   };
   request.onupgradeneeded = function (evt) {
@@ -542,7 +560,8 @@ function selectDB(database) {
     });
   };
   request.onerror = function(event) {
-    console.log('==查询token错误==：' + request.error);
+    setSoftExcuteWrongDom('获取用户登录信息失败');
+    console.log('==查询token失败==：' + request.error);
   };
 };
 
@@ -603,7 +622,7 @@ function getTransaction() {
   });
 };
 
-// 获取可以余额、充值总结、盈利额
+// 获取可用余额、充值总金额、盈利额
 function getMoney() {
   return new Promise(function(resolve, reject){
     Promise.all([ 
@@ -615,7 +634,9 @@ function getMoney() {
       curUserGainMoney = curUserAvaliable - curUserFillMoney;
       resolve();
     }).catch(function(err){
-      console.log('==投注失败==:', err);
+      setSoftExcuteWrongDom('获取可用余额、充值总金额、盈利额失败');
+      console.log('==获取可用余额、充值总金额、盈利额失败==:', err);
+      reject(err);
     });
   });
 }
@@ -643,8 +664,8 @@ function createDoms() {
     </fieldset>
     <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
       <legend>错误和动态信息提示区域</legend>
-      当前程序执行状态：<br/> <label id="softExcuteStatusDom" style="color:#ff77ff;">上一把投注已完成投注，正在监听下一把投注</label> <br/>
-      程序异常提示：<br/> <label id="softExcuteWrongDom" style="color:#00ff00;">xxxxxxxx</label> <br/>
+      当前程序执行状态：<br/> <label id="softExcuteStatusDom" style="color:#ff77ff;">--</label> <br/>
+      程序异常提示：<br/> <label id="softExcuteWrongDom" style="color:#00ff00;">--</label> <br/>
     </fieldset>
   </div>`);
   Zepto('head').append(`<style>
@@ -661,7 +682,8 @@ function createDoms() {
   </style>`);
   Zepto('body').append(cntDom);
   cntDom.find('#beginBetDom').click(function(){
-    if (confirm('你确定已经设置好了重要参数，现在要开始投注吗？')) {
+    if (confirm('你确定选项已经检查无误可以开始投注了吗？')) {
+      setSoftExcuteWrongDom('--'); // 充值错误信息
       getNextAndBet(); // 开始投注
     }
   });
@@ -670,6 +692,7 @@ function createDoms() {
       betToggle = 0; // 停止投注
       setBeginBetDomDisabled(false);
       setStopBetDomDisabled(true);
+      setSoftExcuteStatusDom('已停止投注');
     }
   });
   cntDom.find('#gainStopInputDom').on('change', function(){
@@ -693,6 +716,7 @@ function initPageData() {
   setGainAbandonInputDom(abandonAddMoney);
   setPreNumInputDom(preBetNum);
   setBeginBetDomDisabled(false);
+  setSoftExcuteStatusDom('环境准备就绪，可以开始投注');
 }
 function setCurAvaliableDom(val) {
   Zepto('#curAvaliableDom').html(val);
@@ -717,6 +741,12 @@ function setBeginBetDomDisabled(bool) {
 }
 function setStopBetDomDisabled(bool){
   Zepto('#stopBetDom').attr('disabled', bool);
+}
+function setSoftExcuteStatusDom(val){
+  Zepto('#softExcuteStatusDom').html(val);
+}
+function setSoftExcuteWrongDom(val){
+  Zepto('#softExcuteWrongDom').html(val);
 }
 
 linkDB();
