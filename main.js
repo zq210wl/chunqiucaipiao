@@ -64,7 +64,8 @@ var TEXT_TO_WAY_ID = { // 从文本获取wayId
 
 var splitMultiple = 54; // 到多少倍开始拆分
 var backToMultiple = 6; // 遇到拆分需要返回开始的倍数
-var addBeginMultiple = 6; // 追加开始的倍数
+var addBeginMultiple = 6; // 追加开始的倍数(必须是洗面表中的倍数)
+var splitAddNum = 9; // 每次拆分需要追加的把数(因为是3个城市，一个城市3个，所以是9)
 var BET_NORMAL_LIST = [ // 正常投注倍数
   { multiple: 1, money: 1.8, index: 1 },
   { multiple: 2, money: 3.6, index: 2 },
@@ -169,7 +170,7 @@ function requestPreResult() {
     month = (month > 9 ? month : '0' + month);
     day = (day > 9 ? day : '0' + day);
   
-    var params = `start=${year}-${month}-${day} 00:00:00&end=${year}-${month}-${day} 23:59:59&lottery_id=0&page=1&page_size=20`;
+    var params = `start=${year}-${month}-${day} 00:00:00&end=${year}-${month}-${day} 23:59:59&lottery_id=0&page=1&page_size=${preBetNum}`;
     var num = 1;
     function requestProject() {
       http('GET', apiDomain + '/reports/project?' + params).then(function(res){
@@ -312,9 +313,9 @@ function getDataFromAdd(dataArr) {
     processedData.push(curData);
   }
   for (var i = 0; i < needSplitNum; i++) {
-    for (var j = 0; j < dataArr.length; j++) {
+    for (var j = 0; j < splitAddNum; j++) {
       var curData = Object.assign({}, dataArr[j]);
-      curData.multiple = BET_ADD_LIST[0].multiple;
+      curData.multiple = addBeginMultiple;
       processedData.push(curData);
     }
   }
@@ -353,7 +354,7 @@ function betAPI(index, dataArr) {
   data.ball = encryptObj.toString();
   http('POST', apiDomain + '/games/bet', data).then(function(res){
     if (res && res.isSuccess) {
-      console.log('==第[' + index + ']条投注成功==');
+      console.log('==第[' + (index+1) + ']条投注成功==');
       index++;
       if (index < dataArr.length) {
         setTimeout(function(){
@@ -370,7 +371,7 @@ function betAPI(index, dataArr) {
           if (betToggle === 1) {
             getNextAndBet();
           }
-        }, 5000);
+        }, 8000);
       }
     } else {
       reject('==投注失败==');
