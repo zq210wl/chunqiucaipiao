@@ -95,6 +95,7 @@ var BET_ADD_LIST = [ // 追加投注倍数
 ];
 
 var token = '';
+var apiDomain = 'https://api.chunqiu1.com';
 /*************** 投注需要用到的数据 - start ***************/
 var betCommon = { // 默认公共投注数据
   uuid: "",
@@ -170,7 +171,7 @@ function requestPreResult() {
     var params = `start=${year}-${month}-${day} 00:00:00&end=${year}-${month}-${day} 23:59:59&lottery_id=0&page=1&page_size=20`;
     var num = 1;
     function requestProject() {
-      http('GET', 'https://api.chunqiu1.com/reports/project?' + params).then(function(res){
+      http('GET', apiDomain + '/reports/project?' + params).then(function(res){
         console.log('--查询上一把投注结果 ' + num + ' 次--');
         if (res && res.isSuccess && res.data && res.data.length >= preBetNum) {
           for (var i = 0; i < preBetNum; i++) {
@@ -202,7 +203,7 @@ function requestPreResult() {
 // 获取下一期数据
 function requestNextIssue(lotteryId) {
   return new Promise(function(resolve, reject){
-    http('POST', 'https://api.chunqiu1.com/games/issue?enable=1', {
+    http('POST', apiDomain + '/games/issue?enable=1', {
       lottery_id: lotteryId
     }).then(function(res){
       if (res && res.isSuccess && res.data) {
@@ -348,7 +349,7 @@ function betAPI(index, dataArr) {
     padding: CryptoJS.pad.Pkcs7
   });
   data.ball = encryptObj.toString();
-  http('POST', 'https://api.chunqiu1.com/games/bet', data).then(function(res){
+  http('POST', apiDomain + '/games/bet', data).then(function(res){
     console.log('==第[' + index + ']条投注成功==');
     index++;
     if (index < dataArr.length) {
@@ -551,7 +552,7 @@ function selectDB(database) {
 // 查询可用余额
 function getAvailable() {
   return new Promise(function(resolve, reject){
-    http('GET', 'https://api.chunqiu1.com/users/available').then(function(res){
+    http('GET', apiDomain + '/users/available').then(function(res){
       if (res && res.isSuccess && res.data) {
         var available = Number(Number(res.data.available).toFixed(2));
         console.log('--查询可用余额成功--:', available);
@@ -577,8 +578,7 @@ function getTransaction() {
     day = (day > 9 ? day : '0' + day);
 
     var params = `start=${year}-${month}-${day} 08:00:00&end=${year}-${month}-${day} 23:59:59&type_id=1&page=1&page_size=1`;
-    // params = `start=2018-10-07 08:00:00&end=2018-10-08 03:00:00&type_id=1&page=1&page_size=1`;
-    http('GET', 'https://api.chunqiu1.com/reports/transaction?' + params).then(function(res){
+    http('GET', apiDomain + '/reports/transaction?' + params).then(function(res){
       if (res && res.isSuccess && res.data && res.data.data) {
         var fillMoney = 0;
         for (var i = 0; i < res.data.data.length; i++) {
