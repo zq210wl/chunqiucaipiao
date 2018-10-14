@@ -87,7 +87,7 @@ var BET_NORMAL_LIST = [ // 正常投注倍数
 
 var token = '';
 var apiDomain = 'https://api.chunqiu1.com';
-apiDomain = ''; // 测试
+apiDomain = ''; // TODO: 测试，删除
 /*************** 投注需要用到的数据 - start ***************/
 var betCommon = { // 默认公共投注数据
   uuid: "",
@@ -260,6 +260,10 @@ function getNormalMultipleNextData(multiple) {
       return BET_NORMAL_LIST[i+1].multiple;
     }
   }
+  wrongTipTxt = '在表中找不到[' + multiple + ']的下一个倍数';
+  setSoftExcuteWrongDom(wrongTipTxt);
+  stopBet();
+  throw Error(wrongTipTxt);
 }
 
 // 获取默认重新开始数据
@@ -502,6 +506,7 @@ function getNextAndBet() {
     }).catch(function(err){
       setSoftExcuteWrongDom('投注异常，请手工去检查目前投注数据状况并完成投注');
       console.log('==投注异常==:', err);
+      stopBet();
     });
   });
 }
