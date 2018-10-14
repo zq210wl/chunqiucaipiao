@@ -263,7 +263,7 @@ function validateNextIssue(xinJiang, chongQing, heiLongJiang) {
 function getNormalMultipleNextData(multiple) {
   for (var i = 0; i < BET_NORMAL_LIST.length; i++) {
     if (BET_NORMAL_LIST[i].multiple === multiple && BET_NORMAL_LIST[i+1]) {
-      return BET_NORMAL_LIST[i+1];
+      return BET_NORMAL_LIST[i+1].multiple;
     }
   }
 }
@@ -276,18 +276,18 @@ function getDefaultData(cityDatas) {
   for (var i = 0; i < lotteryIdArr.length; i++) {
     var curLotteryId = lotteryIdArr[i];
     dataArr.push({
-      issue: cityDatas[curLotteryId].issue,
+      issue: cityDatas[curLotteryId].cur_issue,
       wayId: QIAN_SAN_WAY_ID,
       lotteryId: curLotteryId,
       multiple: 1
     },{
-      issue: cityDatas[curLotteryId].issue,
+      issue: cityDatas[curLotteryId].cur_issue,
       wayId: ZHONG_SAN_WAY_ID,
       lotteryId: curLotteryId,
       multiple: 1
     },
     {
-      issue: cityDatas[curLotteryId].issue,
+      issue: cityDatas[curLotteryId].cur_issue,
       wayId: HOU_SAN_WAY_ID,
       lotteryId: curLotteryId,
       multiple: 1
@@ -331,7 +331,7 @@ function processingData(dataArr, cityDatas) {
     for (var i = 0; i < dataArr.length; i++) {
       var curData = dataArr[i];
       tempDataArr.push({
-        issue: cityDatas[curData.lottery_id].issue,
+        issue: cityDatas[curData.lottery_id].cur_issue,
         wayId: TEXT_TO_WAY_ID[curData.title],
         lotteryId: curData.lottery_id,
         multiple: getNormalMultipleNextData(curData.multiple)
@@ -366,11 +366,11 @@ function betAPI(index, dataArr) {
   
         setSoftExcuteStatusDom('投注成功完成');
         console.log('--全部投注成功，当前一共[' + preBetNum + ']条投注--');
-        if (betToggle === 1) {
-          setTimeout(function() {
+        setTimeout(function() {
+          if (betToggle === 1) {
             getNextAndBet();
-          }, 5000);
-        }
+          }
+        }, 5000);
       }
     } else {
       reject('==投注失败==');
@@ -393,7 +393,7 @@ function excuteBet(dataArr) {
       traceStopValue: betCommon.traceStopValue, 
       traceWinStop: betCommon.traceWinStop, 
       gameId: curData.lotteryId, // 城市时时彩游戏id
-      amount: betCommon.num * curData.multiple * betCommon.moneyunit * betCommon.onePrice, // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
+      amount: Number(betCommon.num) * Number(curData.multiple) * Number(betCommon.moneyunit) * Number(betCommon.onePrice), // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
       orders: {
         [curData.issue]: 1 // key: 要投注的奖期
       },
@@ -412,7 +412,7 @@ function excuteBet(dataArr) {
   }
   setSoftExcuteStatusDom('正在投注中，请务必保持网络畅通');
   // 执行投注API
-  // betAPI(0, processedDataArr);
+  betAPI(0, processedDataArr);
 }
 
 // 调用投注之前的数据检查
@@ -481,7 +481,6 @@ function getNextAndBet() {
       var xinJiang = resList[0];
       var chongQing = resList[1];
       var heiLongJiang = resList[2];
-      debugger;
       // 校验数据的正确性
       if (!validatePreResult(preData) || !validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
         return;
