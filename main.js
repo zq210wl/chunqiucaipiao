@@ -84,16 +84,6 @@ var BET_NORMAL_LIST = [ // 正常投注倍数
   { multiple: 234, money: 421.2, index: 15 },
   { multiple: 346, money: 622.8, index: 16 }
 ];
-var BET_ADD_LIST = [ // 追加投注倍数
-  { multiple: 32, money: 57.6, index: 1 },
-  { multiple: 46, money: 82.8, index: 2 },
-  { multiple: 67, money: 5.4, index: 3 },
-  { multiple: 97, money: 120.6, index: 4 },
-  { multiple: 140, money: 252, index: 5 },
-  { multiple: 205, money: 369, index: 6 },
-  { multiple: 300, money: 540, index: 7 },
-  { multiple: 435, money: 783, index: 8 }
-];
 
 var token = '';
 var apiDomain = 'https://api.chunqiu1.com';
@@ -219,14 +209,14 @@ function requestNextIssue(lotteryId) {
   });
 }
 
-// 校验上一期数据的正确性
+// 校验上一期数据的正确性和规范性
 function validatePreResult(preData) {
   if (preData.length === 0 && preBetNum === 0) {
     return true;
   }
-  var errMsg = '上一把数据条数不符合规范';
   if (preData.length % 9 !== 0) {
-    console.log('==上一把数据条数必须是9的倍数==');
+    wrongTipTxt = '上一把数据条数不是9的倍数,数据已经混乱了,请人工手动排查问题';
+    setSoftExcuteWrongDom(wrongTipTxt);
     return false;
   }
   for (var i = 0; i < (preData.length / 3); i++) {
@@ -234,11 +224,13 @@ function validatePreResult(preData) {
     var index1 = i * 3 + 1;
     var index2 = i * 3 + 2;
     if (!(preData[index0].issue === preData[index1].issue && preData[index1].issue === preData[index2].issue)) {
-      console.log('==上一把数据的奖期混乱对不上号==');
+      wrongTipTxt = '上一把数据中的前中后奖期不同,数据混乱了,请人工手动排查问题';
+      setSoftExcuteWrongDom(wrongTipTxt);
       return false;
     }
     if (!(preData[index0].lottery_id === preData[index1].lottery_id && preData[index1].lottery_id === preData[index2].lottery_id)) {
-      console.log('==上一把数据的城市混乱对不上号==');
+      wrongTipTxt = '上一把数据中的城市顺序对不上号,数据混乱了,请人工手动排查问题';
+      setSoftExcuteWrongDom(wrongTipTxt);
       return false;
     }
   }
@@ -490,6 +482,7 @@ function getNextAndBet() {
       var heiLongJiang = resList[2];
       // 校验数据的正确性
       if (!validatePreResult(preData) || !validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
+        stopBet();
         return;
       }
       // 把数据倒序排列一下
@@ -641,30 +634,30 @@ function getMoney() {
 // 创建DOM，注册事件
 function createDoms() {
   // 分：信息提示区域、选项区域、操作区域、错误信息提示区域
-  var cntDom = Zepto(`<div style="position: fixed;top: 0;left: 0;bottom: 0;right: 0;z-index: 1000;background: rgba(0,0,0,0.7);">
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 14px;">
+  var cntDom = Zepto(`<div style="position:fixed;top:0;left:0;bottom:0;right:0;z-index:1000;background:rgba(0,0,0,0.7);">
+    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:14px;margin-top:5px;">
       <legend>信息展示区域</legend>
-      当前余额：<label id="curAvaliableDom" style="color: #00ff00">--</label> <br/>
-      当天充值总金额：<label id="curFillMoneyDom" style="color: #00ff00">--</label> <br/>
-      当天赢利额：<label id="curGainDom" style="color: #00ff00">--</label> <br/>
+      当前余额：<label id="curAvaliableDom" style="color:#00ff00">--</label> <br/>
+      当天充值总金额：<label id="curFillMoneyDom" style="color:#00ff00">--</label> <br/>
+      当天赢利额：<label id="curGainDom" style="color:#00ff00">--</label> <br/>
     </fieldset>
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 14px;">
+    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:14px;margin-top:5px;">
       <legend>选项区域</legend>
-      盈利多少钱就停止所有的下注：<br/> <input id="gainStopInputDom" value='0' style="color:#000;" /> <br/>
-      盈利多少钱就放弃再分的把数：<br/> <input id="gainAbandonInputDom" value='0' style="color:#000;" />(每一次放弃再分会累加200元)<br/>
-      从历史投注的前多少条开始跟投(必须是0或9的倍数)：<br/> <input id="preNumInputDom" value='0' style="color:#000;" /> <br/>
+      盈利多少钱就停止所有的下注：<br/> <input id="gainStopInputDom" value='0' style="color:#000;margin-bottom:5px;" /> <br/>
+      盈利多少钱就放弃再分的把数：<br/> <input id="gainAbandonInputDom" value='0' style="color:#000;margin-bottom:5px;" />(每一次放弃再分会累加200元)<br/>
+      从历史投注的前多少条开始跟投(必须是0或9的倍数)：<br/> <input id="preNumInputDom" value='0' style="color:#000;" />(0表示重新从头开始) <br/>
     </fieldset>
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 14px;">
+    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:14px;margin-top:5px;">
       <legend>操作区域</legend>
-      <button id="beginBetDom" style="color: #000;height: 24px;" class="customButtom" disabled>开始投注</button> <br/><br/>
-      <button id="stopBetDom" style="color: #000;height: 24px;" class="customButtom" disabled>停止投注</button> <br/>
+      <button id="beginBetDom" style="color:#000;height:24px;" class="customButtom" disabled>开始投注</button> &nbsp;&nbsp;&nbsp;
+      <button id="stopBetDom" style="color:#000;height:24px;" class="customButtom" disabled>停止投注</button> <br/>
     </fieldset>
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 14px;">
+    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:14px;margin-top:5px;">
       <legend>错误和动态信息提示区域</legend>
-      当前程序执行状态：<br/> <label id="softExcuteStatusDom" style="color:lightgreen;">--</label> <br/>
+      当前程序执行状态：<br/> <label id="softExcuteStatusDom" style="color:lightgreen;margin-bottom:5px;display:inline-block;">--</label> <br/>
       程序异常提示：<br/> <label id="softExcuteWrongDom" style="color:#00ff00;">--</label> <br/>
     </fieldset>
-    <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 12px;">
+    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:12px;margin-top:5px;">
       <legend>特别注意事项</legend>
       一、要让程序接着上一把来跟投，必须要遵守以下约定，否则后果自负：<br/>
       1、上一把从下往上顺序必须是：A城市的前中后、B城市的前中后、C城市的前中后、...;
@@ -719,7 +712,7 @@ function initPageData() {
   setGainAbandonInputDom(abandonAddMoney);
   setPreNumInputDom(preBetNum);
   setBeginBetDomDisabled(false);
-  setSoftExcuteStatusDom('环境准备就绪，可以开始投注');
+  setSoftExcuteStatusDom('环境准备就绪,可以开始投注');
 }
 function stopBet() {
   betToggle = 0; // 停止投注
