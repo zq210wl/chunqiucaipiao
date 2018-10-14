@@ -312,7 +312,7 @@ function getDataFromAdd(dataArr) {
   if (curUserGainMoney >= abandonAddMoney) {
     dataArr = dataArr.slice(0, 9);
   }
-  for (var i = 0; i < dataArr.length, i++) {
+  for (var i = 0; i < dataArr.length; i++) {
     var curData = Object.assign({}, dataArr[i]);
     if (curData.multiple >= splitMultiple) {
       curData.multiple = backToMultiple;
@@ -321,7 +321,7 @@ function getDataFromAdd(dataArr) {
     processedData.push(curData);
   }
   for (var i = 0; i < needSplitNum; i++) {
-    for (var j = 0; j < dataArr.length, j++) {
+    for (var j = 0; j < dataArr.length; j++) {
       var curData = Object.assign({}, dataArr[j]);
       curData.multiple = BET_ADD_LIST[0].multiple;
       processedData.push(curData);
@@ -360,7 +360,7 @@ function betAPI(index, dataArr) {
     padding: CryptoJS.pad.Pkcs7
   });
   data.ball = encryptObj.toString();
-  http('POST', 'https://api.chunqiu1.com/games/bet', data: data).then(function(res){
+  http('POST', 'https://api.chunqiu1.com/games/bet', data).then(function(res){
     console.log('==第[' + index + ']条投注成功==');
     index++;
     if (index < dataArr.length) {
@@ -435,7 +435,7 @@ function invokeBetValidate() {
         reject(wrongTipTxt);
         return;
       }
-      if (preBetNum ％ 9 !== 0) {
+      if (preBetNum % 9 !== 0) {
         wrongTipTxt = '跟投历史条数必须是9的倍数';
         setSoftExcuteWrongDom(wrongTipTxt);
         reject(wrongTipTxt);
@@ -517,7 +517,7 @@ function getNextAndBet() {
   });
 }
 
-/////////////////////////////////////
+/************** 以下是数据库和钱相关 ***************/
 
 // 连接数据库
 function linkDB() {
@@ -641,6 +641,8 @@ function getMoney() {
   });
 }
 
+/************** 以下是dom相关 ***************/
+
 // 创建DOM，注册事件
 function createDoms() {
   // 分：信息提示区域、选项区域、操作区域、错误信息提示区域
@@ -705,7 +707,7 @@ function createDoms() {
     setPreNumInputDom(Number(Zepto(this).val()));
   });
 }
-createDoms();
+// createDoms();
 
 // 初始化页面中的动态数据
 function initPageData() {
@@ -749,4 +751,5 @@ function setSoftExcuteWrongDom(val){
   Zepto('#softExcuteWrongDom').html(val);
 }
 
+createDoms();
 linkDB();
