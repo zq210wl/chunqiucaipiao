@@ -513,6 +513,7 @@ function getNextAndBet() {
     });
   }).catch(function(err){
     console.log('==投注异常==:', err);
+    playAlarm();
     stopBet();
   });
 }
