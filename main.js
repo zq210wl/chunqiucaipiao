@@ -371,7 +371,7 @@ function betAPI(index, dataArr) {
           if (betToggle === 1) {
             getNextAndBet();
           }
-        }, 8000);
+        }, 10000);
       }
     } else {
       reject('==投注失败==');
@@ -423,31 +423,34 @@ function invokeBetValidate() {
       if (curUserAvaliable < 50) {
         wrongTipTxt = '账户余额必须大于50元';
         setSoftExcuteWrongDom(wrongTipTxt);
+        stopBet();
         reject(wrongTipTxt);
         return;
       }
       if (preBetNum % 9 !== 0) {
         wrongTipTxt = '跟投历史条数必须是9的倍数';
         setSoftExcuteWrongDom(wrongTipTxt);
+        stopBet();
         reject(wrongTipTxt);
         return;
       }
       if (stopGainMoney <= 0) {
         wrongTipTxt = '盈利多少钱就停止所有的下注的值必须大于0';
         setSoftExcuteWrongDom(wrongTipTxt);
+        stopBet();
         reject(wrongTipTxt);
         return;
       }
       if (abandonAddMoney <= 0) {
         wrongTipTxt = '盈利多少钱就放弃再分的把数的值必须大于0';
         setSoftExcuteWrongDom(wrongTipTxt);
+        stopBet();
         reject(wrongTipTxt);
         return;
       }
       if (curUserGainMoney >= stopGainMoney) {
         wrongTipTxt = '您目前赢利额已经大于或等于' + stopGainMoney + '元了，不能再玩了，程序已经自动停止。如果还要玩，请调整盈利额参数';
         setSoftExcuteWrongDom(wrongTipTxt);
-        // 程序运行过程中触发此条件后需要关闭
         stopBet();
         reject(wrongTipTxt);
         return;
@@ -508,6 +511,9 @@ function getNextAndBet() {
       console.log('==投注异常==:', err);
       stopBet();
     });
+  }).catch(function(err){
+    console.log('==投注异常==:', err);
+    stopBet();
   });
 }
 
@@ -671,6 +677,10 @@ function createDoms() {
       二、本程序不能跨天玩，当天收盘之后必须要把余额全部提现，不然会导致下一天的金额计算错误;<br/>
       三、如果有一个城市当天已经到达收盘时间，那么也不能用本程序也玩了，如果要玩需要自己手动去操作;
     </fieldset>
+    <div style="position:absolute;top:10px;right:10px;">
+      <button id="closeAlarmBtnDom" class="customButtom" style="height:24px;">关闭报警</button>
+      <audio id="alarmAudioDom" style="display:none;" src="http://fjdx.sc.chinaz.com/files/download/sound1/201406/4611.mp3" controls preload="auto" loop></audio>
+    </div>
   </div>`);
   Zepto('head').append(`<style>
     .customButtom {
@@ -687,7 +697,7 @@ function createDoms() {
   Zepto('body').append(cntDom);
   cntDom.find('#beginBetDom').click(function(){
     if (confirm('你确定选项已经检查无误可以开始投注了吗？')) {
-      setSoftExcuteWrongDom('--'); // 重置错误信息
+      setSoftExcuteWrongDom('--', true); // 重置错误信息
       getNextAndBet(); // 开始投注
     }
   });
@@ -704,6 +714,9 @@ function createDoms() {
   });
   cntDom.find('#preNumInputDom').on('change', function(){
     preBetNum = Number(Zepto(this).val());
+  });
+  cntDom.find('#closeAlarmBtnDom').click(function(){
+    pauseAlarm();
   });
 }
 // createDoms();
@@ -760,8 +773,17 @@ function setStopBetDomDisabled(bool){
 function setSoftExcuteStatusDom(val){
   Zepto('#softExcuteStatusDom').html(val);
 }
-function setSoftExcuteWrongDom(val){
+function setSoftExcuteWrongDom(val, notAlarm){
+  if (!notAlarm) {
+    playAlarm();
+  }
   Zepto('#softExcuteWrongDom').html(val);
+}
+function playAlarm(){
+  Zepto('#alarmAudioDom')[0].play();
+}
+function pauseAlarm(){
+  Zepto('#alarmAudioDom')[0].pause();
 }
 
 createDoms();
