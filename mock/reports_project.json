@@ -17,8 +17,8 @@
 			"amount": "115.2000",
 			"commission": 0,
 			"winning_number": ["5", "8", "8", "3", "0"],
-			"prize": null,
-			"status": 0,
+			"prize": "2.3",
+			"status": 2,
 			"bought_at": "2018-10-07 15:14:58",
 			"bet_prize_group": null
 		}, {

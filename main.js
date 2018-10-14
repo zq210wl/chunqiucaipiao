@@ -174,11 +174,12 @@ function requestPreResult() {
     function requestProject() {
       http('GET', apiDomain + '/reports/project?' + params).then(function(res){
         console.log('--查询上一把投注结果 ' + num + ' 次--');
-        if (res && res.isSuccess && res.data && res.data.length >= preBetNum) {
+        if (res && res.isSuccess && res.data && res.data.data && res.data.data.length >= preBetNum) {
+          var dataArr = res.data.data;
           for (var i = 0; i < preBetNum; i++) {
-            var curData = res.data[i];
+            var curData = dataArr[i];
             // status 为开奖状态，0: 未开奖，2: 未中奖, 3: 已中奖
-            if (curData.status === 0 && !curData.prize) { // 有未开奖
+            if (curData.status === 0) { // 有未开奖
               // 5秒钟查询一次开奖结果
               setTimeout(function(){
                 num++;
@@ -188,7 +189,7 @@ function requestPreResult() {
             }
           }
           console.log('--上一把投注结果已全开--');
-          resolve(res.data.slice(0, preBetNum)); 
+          resolve(dataArr.slice(0, preBetNum)); 
         } else {
           reject('==查询上一把投注结果失败1==');
         }
@@ -227,9 +228,9 @@ function validatePreResult(preData) {
     return false;
   }
   for (var i = 0; i < (preData.length / 3); i++) {
-    var index0 = i * 9 + 0;
-    var index1 = i * 9 + 1;
-    var index2 = i * 9 + 2;
+    var index0 = i * 3 + 0;
+    var index1 = i * 3 + 1;
+    var index2 = i * 3 + 2;
     if (!(preData[index0].issue === preData[index1].issue && preData[index1].issue === preData[index2].issue)) {
       console.log('==上一把数据的奖期混乱对不上号==');
       return false;
@@ -480,14 +481,14 @@ function getNextAndBet() {
       var xinJiang = resList[0];
       var chongQing = resList[1];
       var heiLongJiang = resList[2];
-  
+      debugger;
       // 校验数据的正确性
       if (!validatePreResult(preData) || !validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
         return;
       }
       // 把数据倒序排列一下
       var allProcessedData = [];
-      for (var i = preData.length; i > 0; i--) {
+      for (var i = preData.length - 1; i >= 0; i--) {
         allProcessedData.push(preData[i]);
       }
   
@@ -588,13 +589,13 @@ function getTransaction() {
         var fillMoney = 0;
         for (var i = 0; i < res.data.data.length; i++) {
           var curData = res.data.data[i];
-          var dArr = curData.slice(0,10).split('-');
+          var dArr = curData.created_at.slice(0,10).split('-');
           var d = new Date();
           var year = d.getFullYear() + '';
           var month = d.getMonth() + 1 + '';
           var day = d.getDate() + '';
           if (year === dArr[0] && month === dArr[1] && day === dArr[2]) {
-            fillMoney = fillMoney + curData.amount;
+            fillMoney = fillMoney + Number(curData.amount);
           }
         }
         fillMoney = Number(Number(fillMoney).toFixed(2));
@@ -637,9 +638,9 @@ function createDoms() {
   var cntDom = Zepto(`<div style="position: fixed;top: 0;left: 0;bottom: 0;right: 0;z-index: 1000;background: rgba(0,0,0,0.7);">
     <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
       <legend>信息展示区域</legend>
-      当前余额：<label id="curAvaliableDom">--</label> <br/>
-      当天充值总金额：<label id="curFillMoneyDom">--</label> <br/>
-      当天赢利额：<label id="curGainDom">--</label> <br/>
+      当前余额：<label id="curAvaliableDom" style="color: #00ff00">--</label> <br/>
+      当天充值总金额：<label id="curFillMoneyDom" style="color: #00ff00">--</label> <br/>
+      当天赢利额：<label id="curGainDom" style="color: #00ff00">--</label> <br/>
     </fieldset>
     <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
       <legend>选项区域</legend>
@@ -654,7 +655,7 @@ function createDoms() {
     </fieldset>
     <fieldset style="border: 2px yellow solid; padding: 10px;color: #fff;font-size: 16px;">
       <legend>错误和动态信息提示区域</legend>
-      当前程序执行状态：<br/> <label id="softExcuteStatusDom" style="color:#ff77ff;">--</label> <br/>
+      当前程序执行状态：<br/> <label id="softExcuteStatusDom" style="color:lightgreen;">--</label> <br/>
       程序异常提示：<br/> <label id="softExcuteWrongDom" style="color:#00ff00;">--</label> <br/>
     </fieldset>
   </div>`);
