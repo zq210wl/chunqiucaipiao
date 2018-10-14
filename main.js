@@ -245,7 +245,7 @@ function validatePreResult(preData) {
 
 // 校验下一期数据的有效性
 function validateNextIssue(xinJiang, chongQing, heiLongJiang) {
-  var limitTime = 36 + (preBetNum / 9) * 10;
+  var limitTime = 30 + (preBetNum / 9) * 10;
   var d = new Date();
   var curTime = d.getTime() / 1000;
   if (

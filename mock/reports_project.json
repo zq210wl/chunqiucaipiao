@@ -18,7 +18,7 @@
 			"commission": 0,
 			"winning_number": ["5", "8", "8", "3", "0"],
 			"prize": "2.3",
-			"status": 2,
+			"status": 3,
 			"bought_at": "2018-10-07 15:14:58",
 			"bet_prize_group": null
 		}, {
