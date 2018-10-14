@@ -96,6 +96,7 @@ var BET_ADD_LIST = [ // 追加投注倍数
 
 var token = '';
 var apiDomain = 'https://api.chunqiu1.com';
+apiDomain = ''; // 测试
 /*************** 投注需要用到的数据 - start ***************/
 var betCommon = { // 默认公共投注数据
   uuid: "",
@@ -203,7 +204,7 @@ function requestPreResult() {
 // 获取下一期数据
 function requestNextIssue(lotteryId) {
   return new Promise(function(resolve, reject){
-    http('POST', apiDomain + '/games/issue?enable=1', {
+    http('POST', apiDomain + '/games/issue?enable=1&lotteryId='+lotteryId, {
       lottery_id: lotteryId
     }).then(function(res){
       if (res && res.isSuccess && res.data) {
@@ -350,24 +351,28 @@ function betAPI(index, dataArr) {
   });
   data.ball = encryptObj.toString();
   http('POST', apiDomain + '/games/bet', data).then(function(res){
-    console.log('==第[' + index + ']条投注成功==');
-    index++;
-    if (index < dataArr.length) {
-      setTimeout(function(){
-        betAPI(index, dataArr);
-      }, 100);
-    } else {
-      // 动态历史跟投数量
-      preBetNum = dataArr.length;
-      setPreNumInputDom(preBetNum);
-
-      setSoftExcuteStatusDom('投注成功完成');
-      console.log('--全部投注成功，当前一共[' + preBetNum + ']条投注--');
-      if (betToggle === 1) {
-        setTimeout(function() {
-          getNextAndBet();
-        }, 5000);
+    if (res && res.isSuccess) {
+      console.log('==第[' + index + ']条投注成功==');
+      index++;
+      if (index < dataArr.length) {
+        setTimeout(function(){
+          betAPI(index, dataArr);
+        }, 100);
+      } else {
+        // 动态历史跟投数量
+        preBetNum = dataArr.length;
+        setPreNumInputDom(preBetNum);
+  
+        setSoftExcuteStatusDom('投注成功完成');
+        console.log('--全部投注成功，当前一共[' + preBetNum + ']条投注--');
+        if (betToggle === 1) {
+          setTimeout(function() {
+            getNextAndBet();
+          }, 5000);
+        }
       }
+    } else {
+      reject('==投注失败==');
     }
   }).catch(function(err){
     reject(err);

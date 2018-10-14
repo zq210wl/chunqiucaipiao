@@ -1,0 +1,108 @@
+{
+	"isSuccess": true,
+	"data": {
+		"current_page": 1,
+		"data": [{
+			"id": 12138137,
+			"serial_number": "D4F3C711AEEB34F92FDABA534A55481C",
+			"type_id": 1,
+			"amount": "100.000000",
+			"available": "100.080000",
+			"created_at": "2018-10-14 22:24:10"
+		}, {
+			"id": 11634202,
+			"serial_number": "0A5EACF1C751C5A288DD7BCD23E1BAC0",
+			"type_id": 1,
+			"amount": "999.000000",
+			"available": "4720.360000",
+			"created_at": "2018-10-14 15:35:28"
+		}, {
+			"id": 11634034,
+			"serial_number": "F44CB424365C247F3DCC365899B8811A",
+			"type_id": 1,
+			"amount": "999.000000",
+			"available": "3721.360000",
+			"created_at": "2018-10-07 15:34:58"
+		}, {
+			"id": 11633817,
+			"serial_number": "A93C954F7E18ACFC22DE15D4532B99E6",
+			"type_id": 1,
+			"amount": "999.000000",
+			"available": "2722.360000",
+			"created_at": "2018-10-07 15:34:08"
+		}, {
+			"id": 11633710,
+			"serial_number": "48ADD7B02C232067593133FA85B5237C",
+			"type_id": 1,
+			"amount": "999.000000",
+			"available": "1723.360000",
+			"created_at": "2018-10-07 15:33:51"
+		}, {
+			"id": 11623407,
+			"serial_number": "755A9D42C329BD677693FA7CFA1FD407",
+			"type_id": 1,
+			"amount": "999.000000",
+			"available": "4773.280000",
+			"created_at": "2018-10-07 15:06:21"
+		}, {
+			"id": 11623242,
+			"serial_number": "9FC56E4F6225AFBCBF16526F62FD9A81",
+			"type_id": 1,
+			"amount": "999.000000",
+			"available": "3774.280000",
+			"created_at": "2018-10-07 15:05:49"
+		}, {
+			"id": 11623114,
+			"serial_number": "2E6B48B41631994156F25C2742C8AE18",
+			"type_id": 1,
+			"amount": "999.000000",
+			"available": "2775.280000",
+			"created_at": "2018-10-07 15:05:15"
+		}, {
+			"id": 11615900,
+			"serial_number": "78285DE2B7F4CAA1AF6551DD100A1D00",
+			"type_id": 1,
+			"amount": "999.000000",
+			"available": "3179.600000",
+			"created_at": "2018-10-07 14:45:43"
+		}, {
+			"id": 11515358,
+			"serial_number": "1859925163291713DDC91D959D604840",
+			"type_id": 1,
+			"amount": "999.000000",
+			"available": "3996.000000",
+			"created_at": "2018-10-07 10:03:51"
+		}, {
+			"id": 11515034,
+			"serial_number": "05A3E2A5F063F4499EAE8C9D2C612901",
+			"type_id": 1,
+			"amount": "999.000000",
+			"available": "2997.000000",
+			"created_at": "2018-10-07 10:02:39"
+		}, {
+			"id": 11514876,
+			"serial_number": "1F82B520D0B7842CE8E67009BA7A0CF4",
+			"type_id": 1,
+			"amount": "999.000000",
+			"available": "1998.000000",
+			"created_at": "2018-10-07 10:02:03"
+		}, {
+			"id": 11514376,
+			"serial_number": "0944305D84916FB3C0AB81FD3AD0EDCD",
+			"type_id": 1,
+			"amount": "999.000000",
+			"available": "999.000000",
+			"created_at": "2018-10-07 10:01:12"
+		}],
+		"first_page_url": "https:\/\/api.chunqiu1.com\/reports\/transaction?page=1",
+		"from": 1,
+		"last_page": 1,
+		"last_page_url": "https:\/\/api.chunqiu1.com\/reports\/transaction?page=1",
+		"next_page_url": null,
+		"path": "https:\/\/api.chunqiu1.com\/reports\/transaction",
+		"per_page": "20",
+		"prev_page_url": null,
+		"to": 13,
+		"total": 13
+	}
+}

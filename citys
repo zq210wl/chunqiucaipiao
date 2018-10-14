@@ -2,6 +2,8 @@
 request: 389 6注 1倍
 {"isTrace":0,"is_encoded":1,"orders":{"181009038":1},"traceStopValue":1,"traceWinStop":1,"bet_source":"browser","uuid":"","amount":0.12,"balls":"KT61wJR7ealKFZ3veif7Ra3ONvxzBwMvNsHslX46yqBJgENeyuee0V9j9BmMeApIgnOtijl2c7bJXq8g4zZorZb1Ol6UxGg256ogmb0s5SdBCOHs62felaGEC7x6Uv9wp/f2fh0ScvO+pEqcI9WagQ==","gameId":1}
 
+response:
+{"isSuccess":true,"data":{"msg":"\u6295\u6ce8\u6210\u529f"}}
 
 
 project接口：含有三种开奖结果
