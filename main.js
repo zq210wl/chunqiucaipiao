@@ -160,6 +160,7 @@ function retry(resolve, reject, method, url, data, retryAttempt) {
           retry(resolve, reject, method, url, data, ++retryAttempt);
         }, 300);
       } else {
+        printError('下面的url请求异常:', url);
         reject(new CustomError('网络接口请求异常，请检查网络是否有问题'));
       }
     }
@@ -448,7 +449,7 @@ function processingData(dataArr, cityDatas) {
 }
 
 // 投注API
-function betAPI(index, dataArr) {
+function betAPI(index, dataArr, resolve, reject) {
   var data = dataArr[index];
   var encryptObj = CryptoJS.AES.encrypt(JSON.stringify(data.balls), CryptoJS.enc.Utf8.parse("C194V1RBJG8MJPEL"), {
     iv: CryptoJS.enc.Utf8.parse("ARC49SBQE76B8QZT"),
@@ -462,7 +463,7 @@ function betAPI(index, dataArr) {
       index++;
       if (index < dataArr.length) {
         setTimeout(function(){
-          betAPI(index, dataArr);
+          betAPI(index, dataArr, resolve, reject);
         }, 100);
       } else {
         // 执行完这一把的所有投注之后，动态改变历史跟投数量
@@ -471,6 +472,9 @@ function betAPI(index, dataArr) {
   
         setSoftExcuteStatusDom('投注成功完成，当前一共[' + preBetNum + ']条投注');
         console.log('投注成功完成，当前一共[' + preBetNum + ']条投注');
+
+        resolve();
+
         // 进入下一轮监听
         setTimeout(function() {
           if (betToggle === 1) {
@@ -479,50 +483,52 @@ function betAPI(index, dataArr) {
         }, 10000);
       }
     } else {
-      throw new CustomError('投注失败_1');
+      reject(new CustomError('投注失败_1'));
     }
   }).catch(function(err){
     if (err.name === 'CustomError') {
-      throw err;
+      reject(err);
     } else {
-      throw new CustomError('投注失败_2');
+      reject(new CustomError('投注失败_2'));
     }
   });
 }
 
 // 执行投注
 function excuteBet(dataArr) {
-  var processedDataArr = [];
-  for (var i = 0; i < dataArr.length; i++) {
-    var curData = dataArr[i];
-    processedDataArr.push({
-      uuid: betCommon.uuid,
-      bet_source: betCommon.bet_source,
-      isTrace: betCommon.isTrace,
-      is_encoded: betCommon.is_encoded,
-      traceStopValue: betCommon.traceStopValue, 
-      traceWinStop: betCommon.traceWinStop, 
-      gameId: curData.lotteryId, // 城市时时彩游戏id
-      amount: Number(betCommon.num) * Number(curData.multiple) * Number(betCommon.moneyunit) * Number(betCommon.onePrice), // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
-      orders: {
-        [curData.issue]: 1 // key: 要投注的奖期
-      },
-      balls: [
-        {
-          ball: betCommon.ball, // 投注的组合数字, 全投注："0123456789"
-          moneyunit: betCommon.moneyunit, // 投注的单位
-          multiple: curData.multiple, // 投注的倍数
-          num: betCommon.num, // 一共投多少注, 全投注：90
-          onePrice: betCommon.onePrice, // 一注的价钱
-          prize_group: betCommon.prize_group, // 奖金组
-          wayId: curData.wayId // 组合玩法的id
-        }
-      ]
-    });
-  }
-  setSoftExcuteStatusDom('正在投注中，请务必保持网络畅通');
-  // 执行投注API
-  betAPI(0, processedDataArr);
+  return new Promise(function(resolve, reject){
+    var processedDataArr = [];
+    for (var i = 0; i < dataArr.length; i++) {
+      var curData = dataArr[i];
+      processedDataArr.push({
+        uuid: betCommon.uuid,
+        bet_source: betCommon.bet_source,
+        isTrace: betCommon.isTrace,
+        is_encoded: betCommon.is_encoded,
+        traceStopValue: betCommon.traceStopValue, 
+        traceWinStop: betCommon.traceWinStop, 
+        gameId: curData.lotteryId, // 城市时时彩游戏id
+        amount: Number(betCommon.num) * Number(curData.multiple) * Number(betCommon.moneyunit) * Number(betCommon.onePrice), // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
+        orders: {
+          [curData.issue]: 1 // key: 要投注的奖期
+        },
+        balls: [
+          {
+            ball: betCommon.ball, // 投注的组合数字, 全投注："0123456789"
+            moneyunit: betCommon.moneyunit, // 投注的单位
+            multiple: curData.multiple, // 投注的倍数
+            num: betCommon.num, // 一共投多少注, 全投注：90
+            onePrice: betCommon.onePrice, // 一注的价钱
+            prize_group: betCommon.prize_group, // 奖金组
+            wayId: curData.wayId // 组合玩法的id
+          }
+        ]
+      });
+    }
+    setSoftExcuteStatusDom('正在投注中，请务必保持网络畅通');
+    // 执行投注API
+    betAPI(0, processedDataArr, resolve, reject);
+  });
 }
 
 // 调用投注之前的数据检查
@@ -596,12 +602,12 @@ function getNextAndBet() {
         [HEI_LONG_JINAG_ID]: heiLongJiang
       });
       // 开始投注
-      excuteBet(processedDataArr);
+      return excuteBet(processedDataArr); // 返回一个promsie，这样 excuteBet 中发生异常就可以被下面的catch捕获
     }).catch(function(err){
       if (err.name === 'CustomError') {
-        reject(err);
+        throw err;
       } else {
-        reject(new CustomError('投注异常，请手工去检查目前投注数据状况并完成投注_1'));
+        throw new CustomError('投注异常，请手工去检查目前投注数据状况并完成投注_1');
       }
     });
   }).catch(function(err){
