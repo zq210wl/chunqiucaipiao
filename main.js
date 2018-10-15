@@ -37,7 +37,9 @@ b.keySize,b.ivSize);l.iv=d.iv;b=a.encrypt.call(this,b,c,d.key,l);b.mixIn(d);retu
 8&255]]^n[l[k&255]]},encryptBlock:function(a,b){this._doCryptBlock(a,b,this._keySchedule,t,r,w,v,l)},decryptBlock:function(a,c){var d=a[c+1];a[c+1]=a[c+3];a[c+3]=d;this._doCryptBlock(a,c,this._invKeySchedule,b,x,q,n,s);d=a[c+1];a[c+1]=a[c+3];a[c+3]=d},_doCryptBlock:function(a,b,c,d,e,j,l,f){for(var m=this._nRounds,g=a[b]^c[0],h=a[b+1]^c[1],k=a[b+2]^c[2],n=a[b+3]^c[3],p=4,r=1;r<m;r++)var q=d[g>>>24]^e[h>>>16&255]^j[k>>>8&255]^l[n&255]^c[p++],s=d[h>>>24]^e[k>>>16&255]^j[n>>>8&255]^l[g&255]^c[p++],t=
 d[k>>>24]^e[n>>>16&255]^j[g>>>8&255]^l[h&255]^c[p++],n=d[n>>>24]^e[g>>>16&255]^j[h>>>8&255]^l[k&255]^c[p++],g=q,h=s,k=t;q=(f[g>>>24]<<24|f[h>>>16&255]<<16|f[k>>>8&255]<<8|f[n&255])^c[p++];s=(f[h>>>24]<<24|f[k>>>16&255]<<16|f[n>>>8&255]<<8|f[g&255])^c[p++];t=(f[k>>>24]<<24|f[n>>>16&255]<<16|f[g>>>8&255]<<8|f[h&255])^c[p++];n=(f[n>>>24]<<24|f[g>>>16&255]<<16|f[h>>>8&255]<<8|f[k&255])^c[p++];a[b]=q;a[b+1]=s;a[b+2]=t;a[b+3]=n},keySize:8});u.AES=p._createHelper(d)})();
 
-/*************** custom start ***************/
+/*************** custom ***************/
+
+// gameId, 也是lotteryId
 var XIN_JINAG_ID = 6;
 var CHONG_QING_ID = 1;
 var HEI_LONG_JINAG_ID = 3;
@@ -48,10 +50,12 @@ var GAMES_ID = {
   [HEI_LONG_JINAG_ID]: '黑龙江'
 };
 
+// 每种game的wayId
 var QIAN_SAN_WAY_ID = 16; // 前三组三
 var ZHONG_SAN_WAY_ID = 150; // 中三组三
 var HOU_SAN_WAY_ID = 49; // 后三组三
 
+// wayId对应的文案
 var QIAN_SAN_TITLE = '前三组三复式';
 var ZHONG_SAN_TITLE = '中三组三复式';
 var HOU_SAN_TITLE = '后三组三复式';
@@ -62,11 +66,8 @@ var TEXT_TO_WAY_ID = { // 从文本获取wayId
   [HOU_SAN_TITLE]: HOU_SAN_WAY_ID
 };
 
-var splitMultiple = 54; // 到多少倍开始拆分
-var backToMultiple = 6; // 遇到拆分需要返回开始的倍数
-var addBeginMultiple = 6; // 追加开始的倍数(必须是洗面表中的倍数)
-var splitAddNum = 9; // 每次拆分需要追加的把数(因为是3个城市，一个城市3个，所以是9)
-var BET_NORMAL_LIST = [ // 正常投注倍数
+// 正常投注倍数
+var BET_NORMAL_LIST = [
   { multiple: 1, money: 1.8, index: 1 },
   { multiple: 2, money: 3.6, index: 2 },
   { multiple: 3, money: 5.4, index: 3 },
@@ -84,9 +85,13 @@ var BET_NORMAL_LIST = [ // 正常投注倍数
   { multiple: 234, money: 421.2, index: 15 },
   { multiple: 346, money: 622.8, index: 16 }
 ];
+var splitMultiple = 54; // 到多少倍开始拆分（可调）
+var backToMultiple = 6; // 遇到拆分需要返回开始的倍数（可调）
+var addBeginMultiple = 6; // 追加开始的倍数(必须是表中的倍数)（可调）
+var splitAddNum = 9; // 每次拆分需要追加的把数(因为是3个城市，一个城市3个，所以是9)（固定不变）
 
 var token = '';
-var apiDomain = 'https://api.chunqiu1.com';
+var apiDomain = 'https://api.chunqiu1.com'; // 接口域名
 apiDomain = ''; // TODO: 测试，删除
 /*************** 投注需要用到的数据 - start ***************/
 var betCommon = { // 默认公共投注数据
@@ -102,7 +107,6 @@ var betCommon = { // 默认公共投注数据
   num: 90, // 一共投多少注, 全投注：90
   prize_group: 1956 // 奖金组
 };
-/*************** 投注需要用到的数据 - end ***************/
 
 /*************** 用户选项 - start ***************/
 var betToggle = 0; // 投注开关，开：1，关：0
@@ -114,9 +118,29 @@ var curUserAvaliable = 0; // 当前用户的可用余额
 var curUserFillMoney = 0; // 当前用户的充值总金额
 var curUserGainMoney = 0; // 当前用户赢利额
 
-var wrongTipTxt = ''; // 错误提示文本
-/*************** 用户选项 - end ***************/
 
+// 自定义错误类型
+function CustomError(message) {
+  this.message = message;
+  this.name = 'CustomError';
+  Error.captureStackTrace(this, CustomError) 
+}
+CustomError.prototype = new Error();
+CustomError.prototype.constructor = CustomError;
+
+// 在控制台输出错误信息
+function printError(){
+  var args = Array.prototype.slice.call(arguments);
+  for (var i = 0; i < args.length; i++) {
+    if (typeof(args[i]) === 'object') {
+      console.log(args[i]);
+    } else {
+      console.log('%c' + args[i], 'color:blue');
+    }
+  }
+}
+
+// 请求重试
 function retry(resolve, reject, method, url, data, retryAttempt) {
   Zepto.ajax({
     type: method,
@@ -130,13 +154,13 @@ function retry(resolve, reject, method, url, data, retryAttempt) {
     success: function (res) {
       resolve(res);
     },
-    error: function (error) {
+    error: function () {
       if (retryAttempt < 3) {
         setTimeout(function(){
           retry(resolve, reject, method, url, data, ++retryAttempt);
         }, 300);
       } else {
-        reject(error);
+        reject(new CustomError('网络接口请求异常，请检查网络是否有问题'));
       }
     }
   });
@@ -144,6 +168,89 @@ function retry(resolve, reject, method, url, data, retryAttempt) {
 function http(method, url, data) {
   return new Promise(function(resolve, reject){
     retry(resolve, reject, method, url, data, 1);
+  });
+}
+
+// 查询可用余额
+function getAvailable() {
+  return new Promise(function(resolve, reject){
+    http('GET', apiDomain + '/users/available').then(function(res){
+      if (res && res.isSuccess && res.data) {
+        var available = Number(Number(res.data.available).toFixed(2));
+        console.log('查询可用余额成功:', available);
+        resolve(available);
+      } else {
+        reject(new CustomError('查询可用余额失败_1'));
+      }
+    }).catch(function(err){
+      if (err.name === 'CustomError') {
+        reject(err);
+      } else {
+        reject(new CustomError('查询可用余额失败_2'));
+      }
+    });
+  });
+};
+
+// 查询当天充值总金额
+function getTransaction() {
+  return new Promise(function(resolve, reject){
+    var d = new Date();
+    var year = d.getFullYear();
+    var month = d.getMonth() + 1;
+    var day = d.getDate();
+    month = (month > 9 ? month : '0' + month);
+    day = (day > 9 ? day : '0' + day);
+
+    var params = `start=${year}-${month}-${day} 08:00:00&end=${year}-${month}-${day} 23:59:59&type_id=1&page=1&page_size=1`;
+    http('GET', apiDomain + '/reports/transaction?' + params).then(function(res){
+      if (res && res.isSuccess && res.data && res.data.data) {
+        var fillMoney = 0;
+        for (var i = 0; i < res.data.data.length; i++) {
+          var curData = res.data.data[i];
+          var dArr = curData.created_at.slice(0,10).split('-');
+          var d = new Date();
+          var year = d.getFullYear() + '';
+          var month = d.getMonth() + 1 + '';
+          var day = d.getDate() + '';
+          if (year === dArr[0] && month === dArr[1] && day === dArr[2]) {
+            fillMoney = fillMoney + Number(curData.amount);
+          }
+        }
+        fillMoney = Number(Number(fillMoney).toFixed(2));
+        console.log('查询当天充值总金额成功:', fillMoney);
+        resolve(fillMoney);
+      } else {
+        reject(new CustomError('查询当天充值总金额失败_1'));
+      }
+    }).catch(function(err){
+      if (err.name === 'CustomError') {
+        reject(err);
+      } else {
+        reject(new CustomError('查询当天充值总金额失败_2'));
+      }
+    });
+  });
+};
+
+// 获取可用余额、充值总金额、盈利额
+function getMoney() {
+  return new Promise(function(resolve, reject){
+    Promise.all([ 
+      getAvailable(),
+      getTransaction()
+    ]).then(function(resList){
+      curUserAvaliable = resList[0];
+      curUserFillMoney = resList[1];
+      curUserGainMoney = curUserAvaliable - curUserFillMoney;
+      resolve();
+    }).catch(function(err){
+      if (err.name === 'CustomError') {
+        reject(err);
+      } else {
+        reject(new CustomError('获取可用余额、充值总金额、盈利额失败'));
+      }
+    });
   });
 }
 
@@ -165,7 +272,7 @@ function requestPreResult() {
     var num = 1;
     function requestProject() {
       http('GET', apiDomain + '/reports/project?' + params).then(function(res){
-        console.log('--查询上一把投注结果 ' + num + ' 次--');
+        console.log('查询上一把投注结果[' + num + ']次');
         if (res && res.isSuccess && res.data && res.data.data && res.data.data.length >= preBetNum) {
           var dataArr = res.data.data;
           for (var i = 0; i < preBetNum; i++) {
@@ -180,16 +287,20 @@ function requestPreResult() {
               return;
             }
           }
-          console.log('--上一把投注结果已全开--');
+          console.log('上一把投注结果已全开');
           resolve(dataArr.slice(0, preBetNum)); 
         } else {
-          reject('==查询上一把投注结果失败1==');
+          reject(new CustomError('查询上一把投注结果失败_1'));
         }
       }).catch(function(err){
-        console.log('==查询上一把投注结果失败2==');
-        reject(err);
+        if (err.name === 'CustomError') {
+          reject(err);
+        } else {
+          reject(new CustomError('查询上一把投注结果失败_2'));
+        }
       });
     }
+    // 开始请求
     requestProject();
   });
 }
@@ -202,55 +313,51 @@ function requestNextIssue(lotteryId) {
     }).then(function(res){
       if (res && res.isSuccess && res.data) {
         resolve(res.data);
+      } else {
+        reject(new CustomError('查询下一把投注奖期数据失败_1'));
       }
     }).catch(function(err){
-      reject(err);
+      if (err.name === 'CustomError') {
+        reject(err);
+      } else {
+        reject(new CustomError('查询下一把投注奖期数据失败_2'));
+      }
     });
   });
 }
 
 // 校验上一期数据的正确性和规范性
-function validatePreResult(preData) {
-  if (preData.length === 0 && preBetNum === 0) {
-    return true;
+function preResultValidate(preData) {
+  if (preData.length === 0 && preBetNum === 0) { // 重新开始投注的就不用校验了
+    return;
   }
   if (preData.length % 9 !== 0) {
-    wrongTipTxt = '上一把数据条数不是9的倍数,数据已经混乱了,请人工手动排查问题';
-    setSoftExcuteWrongDom(wrongTipTxt);
-    return false;
+    throw new CustomError('上一把数据条数不是9的倍数,数据已经混乱了,请人工手动排查问题');
   }
   for (var i = 0; i < (preData.length / 3); i++) {
     var index0 = i * 3 + 0;
     var index1 = i * 3 + 1;
     var index2 = i * 3 + 2;
     if (!(preData[index0].issue === preData[index1].issue && preData[index1].issue === preData[index2].issue)) {
-      wrongTipTxt = '上一把数据中的前中后奖期不同,数据混乱了,请人工手动排查问题';
-      setSoftExcuteWrongDom(wrongTipTxt);
-      return false;
+      throw new CustomError('上一把数据中的前中后奖期不同,数据混乱了,请人工手动排查问题');
     }
     if (!(preData[index0].lottery_id === preData[index1].lottery_id && preData[index1].lottery_id === preData[index2].lottery_id)) {
-      wrongTipTxt = '上一把数据中的城市顺序对不上号,数据混乱了,请人工手动排查问题';
-      setSoftExcuteWrongDom(wrongTipTxt);
-      return false;
+      throw new CustomError('上一把数据中的城市顺序对不上号,数据混乱了,请人工手动排查问题');
     }
   }
-  return true;
 }
 
 // 校验下一期数据的有效性
-function validateNextIssue(xinJiang, chongQing, heiLongJiang) {
+function nextIssueValidate(xinJiang, chongQing, heiLongJiang) {
   var limitTime = 30 + (preBetNum / 9) * 10;
   var d = new Date();
-  var curTime = d.getTime() / 1000;
   if (
       (xinJiang.cur_issue_time - xinJiang.curTime < limitTime) || 
       (chongQing.cur_issue_time - chongQing.curTime < limitTime) || 
       (heiLongJiang.cur_issue_time - heiLongJiang.curTime < limitTime)
   ) {
-    console.log('==投注剩余时间不够，没有执行投注==');
-    return false;
+    throw new CustomError('投注剩余时间不够，没有执行投注，程序已经停止，若要投注下一期请重新点击开始');
   }
-  return true;
 }
 
 // 获取正常倍数的下一个倍数
@@ -260,10 +367,7 @@ function getNormalMultipleNextData(multiple) {
       return BET_NORMAL_LIST[i+1].multiple;
     }
   }
-  wrongTipTxt = '在表中找不到[' + multiple + ']的下一个倍数';
-  setSoftExcuteWrongDom(wrongTipTxt);
-  stopBet();
-  throw Error(wrongTipTxt);
+  throw new CustomError('在表中找不到[' + multiple + ']的下一个倍数');
 }
 
 // 获取默认重新开始数据
@@ -354,19 +458,20 @@ function betAPI(index, dataArr) {
   data.ball = encryptObj.toString();
   http('POST', apiDomain + '/games/bet', data).then(function(res){
     if (res && res.isSuccess) {
-      console.log('==第[' + (index+1) + ']条投注成功==');
+      console.log('第[' + (index+1) + ']条投注成功');
       index++;
       if (index < dataArr.length) {
         setTimeout(function(){
           betAPI(index, dataArr);
         }, 100);
       } else {
-        // 动态历史跟投数量
+        // 执行完这一把的所有投注之后，动态改变历史跟投数量
         preBetNum = dataArr.length;
         setPreNumInputDom(preBetNum);
   
-        setSoftExcuteStatusDom('投注成功完成');
-        console.log('--全部投注成功，当前一共[' + preBetNum + ']条投注--');
+        setSoftExcuteStatusDom('投注成功完成，当前一共[' + preBetNum + ']条投注');
+        console.log('投注成功完成，当前一共[' + preBetNum + ']条投注');
+        // 进入下一轮监听
         setTimeout(function() {
           if (betToggle === 1) {
             getNextAndBet();
@@ -374,10 +479,14 @@ function betAPI(index, dataArr) {
         }, 10000);
       }
     } else {
-      reject('==投注失败==');
+      throw new CustomError('投注失败_1');
     }
   }).catch(function(err){
-    reject(err);
+    if (err.name === 'CustomError') {
+      throw err;
+    } else {
+      throw new CustomError('投注失败_2');
+    }
   });
 }
 
@@ -421,38 +530,23 @@ function invokeBetValidate() {
   return new Promise(function(resolve, reject){
     getMoney().then(function(){
       if (curUserAvaliable < 50) {
-        wrongTipTxt = '账户余额必须大于50元';
-        setSoftExcuteWrongDom(wrongTipTxt);
-        stopBet();
-        reject(wrongTipTxt);
+        reject(new CustomError('账户余额必须大于50元'));
         return;
       }
       if (preBetNum % 9 !== 0) {
-        wrongTipTxt = '跟投历史条数必须是9的倍数';
-        setSoftExcuteWrongDom(wrongTipTxt);
-        stopBet();
-        reject(wrongTipTxt);
+        reject(new CustomError('跟投历史条数必须是9的倍数'));
         return;
       }
       if (stopGainMoney <= 0) {
-        wrongTipTxt = '盈利多少钱就停止所有的下注的值必须大于0';
-        setSoftExcuteWrongDom(wrongTipTxt);
-        stopBet();
-        reject(wrongTipTxt);
+        reject(new CustomError('盈利多少钱就停止所有的下注的值必须大于0'));
         return;
       }
       if (abandonAddMoney <= 0) {
-        wrongTipTxt = '盈利多少钱就放弃再分的把数的值必须大于0';
-        setSoftExcuteWrongDom(wrongTipTxt);
-        stopBet();
-        reject(wrongTipTxt);
+        reject(new CustomError('盈利多少钱就放弃再分的把数的值必须大于0'));
         return;
       }
       if (curUserGainMoney >= stopGainMoney) {
-        wrongTipTxt = '您目前赢利额已经大于或等于' + stopGainMoney + '元了，不能再玩了，程序已经自动停止。如果还要玩，请调整盈利额参数';
-        setSoftExcuteWrongDom(wrongTipTxt);
-        stopBet();
-        reject(wrongTipTxt);
+        reject(new CustomError('您目前赢利额已经大于或等于' + stopGainMoney + '元了，不能再玩了，程序已经自动停止。如果还要玩，请调整盈利额参数'));
         return;
       }
       // 验证通过之后，设置按钮状态
@@ -478,7 +572,7 @@ function getNextAndBet() {
     } else {
       setSoftExcuteStatusDom('正在计算投注数据');
     }
-    Promise.all([
+    return Promise.all([
       requestNextIssue(XIN_JINAG_ID),
       requestNextIssue(CHONG_QING_ID),
       requestNextIssue(HEI_LONG_JINAG_ID)
@@ -488,33 +582,36 @@ function getNextAndBet() {
       var chongQing = resList[1];
       var heiLongJiang = resList[2];
       // 校验数据的正确性
-      if (!validatePreResult(preData) || !validateNextIssue(xinJiang, chongQing, heiLongJiang)) {
-        stopBet();
-        return;
-      }
+      preResultValidate(preData);
+      nextIssueValidate(xinJiang, chongQing, heiLongJiang);
       // 把数据倒序排列一下
       var allProcessedData = [];
       for (var i = preData.length - 1; i >= 0; i--) {
         allProcessedData.push(preData[i]);
       }
-  
+      // 开始处理数据
       var processedDataArr = processingData(allProcessedData, {
         [XIN_JINAG_ID]: xinJiang, 
         [CHONG_QING_ID]: chongQing, 
         [HEI_LONG_JINAG_ID]: heiLongJiang
       });
-  
+      // 开始投注
       excuteBet(processedDataArr);
-  
     }).catch(function(err){
-      setSoftExcuteWrongDom('投注异常，请手工去检查目前投注数据状况并完成投注');
-      console.log('==投注异常==:', err);
-      stopBet();
+      if (err.name === 'CustomError') {
+        reject(err);
+      } else {
+        reject(new CustomError('投注异常，请手工去检查目前投注数据状况并完成投注_1'));
+      }
     });
   }).catch(function(err){
-    console.log('==投注异常==:', err);
-    playAlarm();
-    stopBet();
+    printError('投注异常:', err);
+    // 所有的异常都统一在这里处理
+    if (err.name === 'CustomError') {
+      processError(err.message);
+    } else {
+      processError('投注异常，请手工去检查目前投注数据状况并完成投注_2');
+    }
   });
 }
 
@@ -522,17 +619,17 @@ function getNextAndBet() {
 
 // 连接数据库
 function linkDB() {
-  console.log('--开始连接数据库--');
+  console.log('开始连接数据库');
   var indexedDB = window.indexedDB;
   var request = indexedDB.open('_ionicstorage', 2);
   request.onsuccess = function (evt) {
     database = request.result;
-    console.log('--连接数据库成功--');
+    console.log('连接数据库成功');
     selectDB(database);
   };
   request.onerror = function (evt) {
     setSoftExcuteWrongDom('连接数据库异常');
-    console.log('==连接数据库异常==: ', evt.target.errorCode);
+    printError('连接数据库异常:', evt.target.errorCode);
   };
   request.onupgradeneeded = function (evt) {
 
@@ -540,7 +637,7 @@ function linkDB() {
 }
 // 查询表
 function selectDB(database) {
-  console.log('--开始查询token--');
+  console.log('开始查询token');
   // 连接数据表
   var transaction = database.transaction(["_ionickv"], "readonly");
   var objectStore = transaction.objectStore("_ionickv");
@@ -548,98 +645,28 @@ function selectDB(database) {
   var request = objectStore.get("token");
   request.onsuccess = function(event) {
     token = request.result;
-    console.log('--查询token成功--');
+    console.log('查询token成功');
 
     // 查询钱相关数据
     getMoney().then(function(res){
       if (curUserAvaliable) {
         // 环境就绪，可以开始投注
         initPageData();
+      } else {
+        throw new CustomError('当前无可用金额');
       }
     }).catch(function(err){
-      console.log(err);
+      printError(err);
+      if (err.name === 'CustomError') {
+        setSoftExcuteWrongDom(err.message);
+      }
     });
   };
   request.onerror = function(event) {
     setSoftExcuteWrongDom('获取用户登录信息失败');
-    console.log('==查询token失败==：' + request.error);
+    printError('查询token失败:', request.error);
   };
 };
-
-// 查询可用余额
-function getAvailable() {
-  return new Promise(function(resolve, reject){
-    http('GET', apiDomain + '/users/available').then(function(res){
-      if (res && res.isSuccess && res.data) {
-        var available = Number(Number(res.data.available).toFixed(2));
-        console.log('--查询可用余额成功--:', available);
-        resolve(available);
-      } else {
-        reject(res);
-      }
-    }).catch(function(err){
-      console.log('==查询可用余额失败==:', err);
-      reject(err);
-    });
-  });
-};
-
-// 查询当天充值总金额
-function getTransaction() {
-  return new Promise(function(resolve, reject){
-    var d = new Date();
-    var year = d.getFullYear();
-    var month = d.getMonth() + 1;
-    var day = d.getDate();
-    month = (month > 9 ? month : '0' + month);
-    day = (day > 9 ? day : '0' + day);
-
-    var params = `start=${year}-${month}-${day} 08:00:00&end=${year}-${month}-${day} 23:59:59&type_id=1&page=1&page_size=1`;
-    http('GET', apiDomain + '/reports/transaction?' + params).then(function(res){
-      if (res && res.isSuccess && res.data && res.data.data) {
-        var fillMoney = 0;
-        for (var i = 0; i < res.data.data.length; i++) {
-          var curData = res.data.data[i];
-          var dArr = curData.created_at.slice(0,10).split('-');
-          var d = new Date();
-          var year = d.getFullYear() + '';
-          var month = d.getMonth() + 1 + '';
-          var day = d.getDate() + '';
-          if (year === dArr[0] && month === dArr[1] && day === dArr[2]) {
-            fillMoney = fillMoney + Number(curData.amount);
-          }
-        }
-        fillMoney = Number(Number(fillMoney).toFixed(2));
-        console.log('--查询当天充值总金额成功:--', fillMoney);
-        resolve(fillMoney);
-      } else {
-        reject(res);
-      }
-    }).catch(function(err){
-      console.log('==查询当天充值总金额失败==:', err);
-      reject(err);
-    });
-  });
-};
-
-// 获取可用余额、充值总金额、盈利额
-function getMoney() {
-  return new Promise(function(resolve, reject){
-    Promise.all([ 
-      getAvailable(),
-      getTransaction()
-    ]).then(function(resList){
-      curUserAvaliable = resList[0];
-      curUserFillMoney = resList[1];
-      curUserGainMoney = curUserAvaliable - curUserFillMoney;
-      resolve();
-    }).catch(function(err){
-      setSoftExcuteWrongDom('获取可用余额、充值总金额、盈利额失败');
-      console.log('==获取可用余额、充值总金额、盈利额失败==:', err);
-      reject(err);
-    });
-  });
-}
 
 /************** 以下是dom相关 ***************/
 
@@ -698,7 +725,7 @@ function createDoms() {
   Zepto('body').append(cntDom);
   cntDom.find('#beginBetDom').click(function(){
     if (confirm('你确定选项已经检查无误可以开始投注了吗？')) {
-      setSoftExcuteWrongDom('--', true); // 重置错误信息
+      setSoftExcuteWrongDom('--'); // 重置错误信息
       getNextAndBet(); // 开始投注
     }
   });
@@ -720,7 +747,6 @@ function createDoms() {
     pauseAlarm();
   });
 }
-// createDoms();
 
 // 初始化页面中的动态数据
 function initPageData() {
@@ -733,12 +759,20 @@ function initPageData() {
   setBeginBetDomDisabled(false);
   setSoftExcuteStatusDom('环境准备就绪,可以开始投注');
 }
+// 停止投注
 function stopBet() {
-  betToggle = 0; // 停止投注
+  betToggle = 0;
   setBeginBetDomDisabled(false);
   setStopBetDomDisabled(true);
   setSoftExcuteStatusDom('已停止投注');
 }
+// 统一错误UI显示和逻辑处理
+function processError(message) {
+  setSoftExcuteWrongDom(message); // UI显示错误信息
+  playAlarm(); // 开启警报
+  stopBet(); // 停止投注
+}
+
 function setCurAvaliableDom(val) {
   Zepto('#curAvaliableDom').html(val);
 }
@@ -774,10 +808,7 @@ function setStopBetDomDisabled(bool){
 function setSoftExcuteStatusDom(val){
   Zepto('#softExcuteStatusDom').html(val);
 }
-function setSoftExcuteWrongDom(val, notAlarm){
-  if (!notAlarm) {
-    playAlarm();
-  }
+function setSoftExcuteWrongDom(val){
   Zepto('#softExcuteWrongDom').html(val);
 }
 function playAlarm(){
