@@ -824,5 +824,5 @@ function pauseAlarm(){
   Zepto('#alarmAudioDom')[0].pause();
 }
 
-createDoms();
-linkDB();
+createDoms(); // 创建DOM界面
+linkDB(); // 连接数据库，准备环境
