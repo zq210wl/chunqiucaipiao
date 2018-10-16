@@ -555,8 +555,11 @@ function invokeBetValidate() {
         reject(new CustomError('您目前赢利额已经大于或等于' + stopGainMoney + '元了，不能再玩了，程序已经自动停止。如果还要玩，请调整盈利额参数'));
         return;
       }
-      // 验证通过之后，设置按钮状态
+      // 验证通过之后，设置文本框不可编辑
+      setInputsDomReadonly(true);
+      // 验证通过之后，设置开始按钮不可点
       setBeginBetDomDisabled(true);
+      // 验证通过之后，设置停止按钮可点
       setStopBetDomDisabled(false);
       // 验证通过之后，打开投注开关
       betToggle = 1;
@@ -770,6 +773,7 @@ function stopBet() {
   betToggle = 0;
   setBeginBetDomDisabled(false);
   setStopBetDomDisabled(true);
+  setInputsDomReadonly(false);
   setSoftExcuteStatusDom('已停止投注');
 }
 // 统一错误UI显示和逻辑处理
@@ -796,6 +800,17 @@ function setGainAbandonInputDom(val) {
 }
 function setPreNumInputDom(val) {
   Zepto('#preNumInputDom').val(val);
+}
+function setInputsDomReadonly(bool) {
+  if (bool) {
+    Zepto('#gainStopInputDom').attr('readonly', true);
+    Zepto('#gainAbandonInputDom').attr('readonly', true);
+    Zepto('#preNumInputDom').attr('readonly', true);
+  } else {
+    Zepto('#gainStopInputDom').removeAttr('readonly');
+    Zepto('#gainAbandonInputDom').removeAttr('readonly');
+    Zepto('#preNumInputDom').removeAttr('readonly');
+  }
 }
 function setBeginBetDomDisabled(bool) {
   if (bool) {
