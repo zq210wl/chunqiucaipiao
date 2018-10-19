@@ -40,7 +40,15 @@ d[k>>>24]^e[n>>>16&255]^j[g>>>8&255]^l[h&255]^c[p++],n=d[n>>>24]^e[g>>>16&255]^j
 /*************** custom ***************/
 
 // gameId, 也是lotteryId
-var LOTTERY_ID = 64; // 腾讯分分彩
+var XIN_JINAG_ID = 6;
+var CHONG_QING_ID = 1;
+var HEI_LONG_JINAG_ID = 3;
+
+var GAMES_ID = {
+  [XIN_JINAG_ID]: '新疆',
+  [CHONG_QING_ID]: '重庆',
+  [HEI_LONG_JINAG_ID]: '黑龙江'
+};
 
 // 每种game的wayId
 var QIAN_SAN_WAY_ID = 16; // 前三组三
@@ -52,15 +60,14 @@ var QIAN_SAN_TITLE = '前三组三复式';
 var ZHONG_SAN_TITLE = '中三组三复式';
 var HOU_SAN_TITLE = '后三组三复式';
 
-// 从文本获取wayId
-var TEXT_TO_WAY_ID = {
+var TEXT_TO_WAY_ID = { // 从文本获取wayId
   [QIAN_SAN_TITLE]: QIAN_SAN_WAY_ID,
   [ZHONG_SAN_TITLE]: ZHONG_SAN_WAY_ID,
   [HOU_SAN_TITLE]: HOU_SAN_WAY_ID
 };
 
 // 正常投注倍数
-var BET_LIST = [
+var BET_NORMAL_LIST = [
   { multiple: 1, money: 1.8, index: 1 },
   { multiple: 2, money: 3.6, index: 2 },
   { multiple: 3, money: 5.4, index: 3 },
@@ -78,76 +85,44 @@ var BET_LIST = [
   { multiple: 234, money: 421.2, index: 15 },
   { multiple: 346, money: 622.8, index: 16 }
 ];
+var splitMultiple = 54; // 到多少倍开始拆分（可调）
+var backToMultiple = 6; // 遇到拆分需要返回开始的倍数（可调）
+var addBeginMultiple = 6; // 追加开始的倍数(必须是表中的倍数)（可调）
+var splitAddNum = 9; // 每次拆分需要追加的把数(因为是3个城市，一个城市3个，所以是9)（固定不变）
 
-// 默认公共投注参数数据
-var BET_COMMON_PARAMS = {
-  uuid: "",
-  bet_source: "browser",
-  isTrace: 0,
-  is_encoded: 1,
-  traceStopValue: 1, 
-  traceWinStop: 1,
-  ball: "0123456789", // 投注的数字, 全投注："0123456789"
-  moneyunit: 0.01, // 投注的单位, 分
-  onePrice: 2, // 投一注的价钱
-  num: 90, // 一共投多少注, 全投注：90
-  prize_group: 1956 // 奖金组
-};
-
-/*************** 投注需要用到的数据 - start ***************/
-var BET_COMMON_PARAMS = { // 默认公共投注数据
-  uuid: "",
-  bet_source: "browser",
-  isTrace: 0,
-  is_encoded: 1,
-  traceStopValue: 1, 
-  traceWinStop: 1,
-  ball: "0123456789", // 投注的数字, 全投注："0123456789"
-  moneyunit: 0.01, // 投注的单位, 分
-  onePrice: 2, // 投一注的价钱
-  num: 90, // 一共投多少注, 全投注：90
-  prize_group: 1956 // 奖金组
-};
-
-/*************** 用户选项和操作 ***************/
-// 操作项
-var betToggle = 0; // 投注开关，开：1，关：0
-// 输入项
-var preBetNum = 0; // 上一次投注数量, 需要用户自己输入，0就是重新开始
-var stopGainMoney = 500; // 盈利多少钱就停止所有的下注
-var followBetExceedNum = 9; // 连续超过多少期未中开始跟投
-var beiginBackTimes = 234; // 跟到多少倍未中奖就开始返回(必须是表中的倍数)
-var backToTimes = 38; // 返回到多少倍(必须是表中的倍数)
-
-// 展示项
-var curUserAvaliable = 0; // 当前用户的可用余额
-var curUserFillMoney = 0; // 当前用户的充值总金额
-var curUserGainMoney = 0; // 当前用户赢利额
-var notWinDetail = { // 前中后分别有连续多少期没中奖了
-  qian: 0,
-  zhong: 0,
-  hou: 0
-};
-var waitOpenDetail = { // 待开奖奖期的前中后跟投情况(跟投到多少倍了)
-  issue: 'xxxxx', // 奖期
-  qian: 0,
-  zhong: 0,
-  hou: 0
-};
-var waitOpenDetail = [ // 已中奖详情，显示前三条数据(显示前中后分别中了多少钱)
-  {
-    issue: 'xxxxx',
-    qian: 0,
-    zhong: 0,
-    hou: 0
-  }
-];
-
-
-/*************** 请求相关 ***************/
 var token = '';
 var apiDomain = 'https://api.chunqiu1.com'; // 接口域名
 apiDomain = ''; // TODO: 测试，删除
+/*************** 投注需要用到的数据 - start ***************/
+var betCommon = { // 默认公共投注数据
+  uuid: "",
+  bet_source: "browser",
+  isTrace: 0,
+  is_encoded: 1,
+  traceStopValue: 1, 
+  traceWinStop: 1,
+  ball: "0123456789", // 投注的数字, 全投注："0123456789"
+  moneyunit: 0.01, // 投注的单位, 分
+  onePrice: 2, // 投一注的价钱
+  num: 90, // 一共投多少注, 全投注：90
+  prize_group: 1956 // 奖金组
+};
+
+/*************** 用户选项 - start ***************/
+var betToggle = 0; // 投注开关，开：1，关：0
+var preBetNum = 0; // 上一次投注数量, 需要用户自己输入，9的整数倍; 0就是重新开始
+var stopGainMoney = 500; // 盈利多少钱就停止所有的下注
+
+var everyBackMoney = 100; // 每次盈利多少钱就回归一倍
+var backAvailableMoney = 0; // 回归一倍的余额基数,默认刚开始为当天充值金额
+var needBack = false; // 是否需要回归一倍
+var preBackAvailableMoney = 0; // 上一把回归一倍的余额基数,默认刚开始为当天充值金额
+var backAvailableChangeNum = 0; // 此次操作开始之后回归一倍的余额基数的变更次数
+
+var curUserAvaliable = 0; // 当前用户的可用余额
+var curUserFillMoney = 0; // 当前用户的充值总金额
+var curUserGainMoney = 0; // 当前用户赢利额
+
 
 // 自定义错误类型
 function CustomError(message) {
@@ -396,9 +371,9 @@ function nextIssueValidate(xinJiang, chongQing, heiLongJiang) {
 
 // 获取正常倍数的下一个倍数
 function getNormalMultipleNextData(multiple) {
-  for (var i = 0; i < BET_LIST.length; i++) {
-    if (BET_LIST[i].multiple === multiple && BET_LIST[i+1]) {
-      return BET_LIST[i+1].multiple;
+  for (var i = 0; i < BET_NORMAL_LIST.length; i++) {
+    if (BET_NORMAL_LIST[i].multiple === multiple && BET_NORMAL_LIST[i+1]) {
+      return BET_NORMAL_LIST[i+1].multiple;
     }
   }
   throw new CustomError('在表中找不到[' + multiple + ']的下一个倍数');
@@ -530,25 +505,25 @@ function excuteBet(dataArr) {
     for (var i = 0; i < dataArr.length; i++) {
       var curData = dataArr[i];
       processedDataArr.push({
-        uuid: BET_COMMON_PARAMS.uuid,
-        bet_source: BET_COMMON_PARAMS.bet_source,
-        isTrace: BET_COMMON_PARAMS.isTrace,
-        is_encoded: BET_COMMON_PARAMS.is_encoded,
-        traceStopValue: BET_COMMON_PARAMS.traceStopValue, 
-        traceWinStop: BET_COMMON_PARAMS.traceWinStop, 
+        uuid: betCommon.uuid,
+        bet_source: betCommon.bet_source,
+        isTrace: betCommon.isTrace,
+        is_encoded: betCommon.is_encoded,
+        traceStopValue: betCommon.traceStopValue, 
+        traceWinStop: betCommon.traceWinStop, 
         gameId: curData.lotteryId, // 城市时时彩游戏id
-        amount: Number(BET_COMMON_PARAMS.num) * Number(curData.multiple) * Number(BET_COMMON_PARAMS.moneyunit) * Number(BET_COMMON_PARAMS.onePrice), // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
+        amount: Number(betCommon.num) * Number(curData.multiple) * Number(betCommon.moneyunit) * Number(betCommon.onePrice), // 总投注金额 = this.bet_num * this.multipleVal * this.moneyUnit * 2
         orders: {
           [curData.issue]: 1 // key: 要投注的奖期
         },
         balls: [
           {
-            ball: BET_COMMON_PARAMS.ball, // 投注的组合数字, 全投注："0123456789"
-            moneyunit: BET_COMMON_PARAMS.moneyunit, // 投注的单位
+            ball: betCommon.ball, // 投注的组合数字, 全投注："0123456789"
+            moneyunit: betCommon.moneyunit, // 投注的单位
             multiple: curData.multiple, // 投注的倍数
-            num: BET_COMMON_PARAMS.num, // 一共投多少注, 全投注：90
-            onePrice: BET_COMMON_PARAMS.onePrice, // 一注的价钱
-            prize_group: BET_COMMON_PARAMS.prize_group, // 奖金组
+            num: betCommon.num, // 一共投多少注, 全投注：90
+            onePrice: betCommon.onePrice, // 一注的价钱
+            prize_group: betCommon.prize_group, // 奖金组
             wayId: curData.wayId // 组合玩法的id
           }
         ]
@@ -900,4 +875,4 @@ function pauseAlarm(){
 createDoms(); // 创建DOM界面
 linkDB(); // 连接数据库，准备环境
 
-// TODO: 验证所输入的倍数是否在表中可以找到
+// TODO:确定当前再分倍数是否合理
