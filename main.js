@@ -124,22 +124,22 @@ var curUserAvaliable = 0; // 当前用户的可用余额
 var curUserFillMoney = 0; // 当前用户的充值总金额
 var curUserGainMoney = 0; // 当前用户赢利额
 var notWinDetail = { // 前中后分别有连续多少期没中奖了
-  qian: 0,
-  zhong: 0,
-  hou: 0
+  qian: { times: -1 },
+  zhong: { times: -1 },
+  hou: { times: -1 }
 };
 var waitOpenDetail = { // 待开奖奖期的前中后跟投情况(跟投到多少倍了)
-  issue: 'xxxxx', // 奖期
-  qian: 0,
-  zhong: 0,
-  hou: 0
+  issue: '', // 奖期
+  qian: { times: -1 },
+  zhong: { times: -1 },
+  hou: { times: -1 }
 };
-var waitOpenDetail = [ // 已中奖详情，显示前三条数据(显示前中后分别中了多少钱)
+var winDetail = [ // 已中奖详情，显示前三条数据(显示前中后分别的中奖倍数和中奖金额)
   {
-    issue: 'xxxxx',
-    qian: 0,
-    zhong: 0,
-    hou: 0
+    issue: '',
+    qian: { times: -1, money: -1 },
+    zhong: { times: -1, money: -1 },
+    hou: { times: -1, money: -1 }
   }
 ];
 
@@ -200,6 +200,31 @@ function http(method, url, data) {
   return new Promise(function(resolve, reject){
     retry(resolve, reject, method, url, data, 1);
   });
+}
+
+// 判断前或中或后是否有相同数字
+function hasSame(lotteryArr, way) {
+  var index1 = 0;
+  var index2 = 0;
+  var index3 = 0;
+  if (way === 1) {
+    index1 = 0;
+    index2 = 1;
+    index3 = 2;
+  } else if (way === 2) {
+    index1 = 1;
+    index2 = 2;
+    index3 = 3;
+  } else if (way === 3) {
+    index1 = 2;
+    index2 = 3;
+    index3 = 4;
+  }
+  if (lotteryArr[index1] === lotteryArr[index2] || lotteryArr[index1] === lotteryArr[index3] || lotteryArr[index2] === lotteryArr[index3]) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 // 查询可用余额
@@ -301,12 +326,19 @@ function requestPreResult() {
     var day = d.getDate();
     month = (month > 9 ? month : '0' + month);
     day = (day > 9 ? day : '0' + day);
-  
-    var params = `start=${year}-${month}-${day} 00:00:00&end=${year}-${month}-${day} 23:59:59&lottery_id=0&page=1&page_size=${preBetNum}`;
+
+    d.setTime(d.getTime() - 24*60*60*1000);
+    var preYear = d.getFullYear();
+    var preMonth = d.getMonth() + 1;
+    var preDay = d.getDate();
+    preMonth = (preMonth > 9 ? preMonth : '0' + preMonth);
+    preDay = (preDay > 9 ? preDay : '0' + preDay);
+
+    var params = `start=${preYear}-${preMonth}-${preDay} 00:00:00&end=${year}-${month}-${day} 23:59:59&lottery_id=0&page=1&page_size=${preBetNum}`;
     var num = 1;
     function requestProject() {
       http('GET', apiDomain + '/reports/project?' + params).then(function(res){
-        console.log('查询上一把投注结果[' + num + ']次');
+        console.log('查询投注结果[' + num + ']次');
         if (res && res.isSuccess && res.data && res.data.data && res.data.data.length >= preBetNum) {
           var dataArr = res.data.data;
           for (var i = 0; i < preBetNum; i++) {
@@ -321,16 +353,16 @@ function requestPreResult() {
               return;
             }
           }
-          console.log('上一把投注结果已全开');
+          console.log('投注结果已开');
           resolve(dataArr.slice(0, preBetNum)); 
         } else {
-          reject(new CustomError('查询上一把投注结果失败_1'));
+          reject(new CustomError('查询投注结果失败_1'));
         }
       }).catch(function(err){
         if (err.name === 'CustomError') {
           reject(err);
         } else {
-          reject(new CustomError('查询上一把投注结果失败_2'));
+          reject(new CustomError('查询投注结果失败_2'));
         }
       });
     }
@@ -355,6 +387,40 @@ function requestNextIssue(lotteryId) {
         reject(err);
       } else {
         reject(new CustomError('查询下一把投注奖期数据失败_2'));
+      }
+    });
+  });
+}
+
+// 获取前50条趋势分析数据中的未中奖情况
+function requestTrends() {
+  return new Promise(function(resolve, reject){
+    http('POST', apiDomain + '/trends', {
+      lottery_id: LOTTERY_ID,
+      count: 50
+    }).then(function(res){
+      if (res && res.isSuccess && res.data) {
+        var dataArr = res.data.original_data;
+        for (var i = 0; i < dataArr.length; i++) {
+          if (hasSame(dataArr[i].lottery, 1) && notWinDetail.qian.times !== -1) {
+            notWinDetail.qian.times = i;
+          }
+          if (hasSame(dataArr[i].lottery, 2) && notWinDetail.zhong.times !== -1) {
+            notWinDetail.zhong.times = i;
+          }
+          if (hasSame(dataArr[i].lottery, 3) && notWinDetail.hou.times !== -1) {
+            notWinDetail.hou.times = i;
+          }
+        }
+        resolve(notWinDetail);
+      } else {
+        reject(new CustomError('查询趋势分析数据失败_1'));
+      }
+    }).catch(function(err){
+      if (err.name === 'CustomError') {
+        reject(err);
+      } else {
+        reject(new CustomError('查询趋势分析数据失败_2'));
       }
     });
   });
@@ -395,13 +461,23 @@ function nextIssueValidate(xinJiang, chongQing, heiLongJiang) {
 }
 
 // 获取正常倍数的下一个倍数
-function getNormalMultipleNextData(multiple) {
+function getNextTimesData(multiple) {
   for (var i = 0; i < BET_LIST.length; i++) {
     if (BET_LIST[i].multiple === multiple && BET_LIST[i+1]) {
       return BET_LIST[i+1].multiple;
     }
   }
   throw new CustomError('在表中找不到[' + multiple + ']的下一个倍数');
+}
+
+// 当前倍数是否存在
+function timesIsInbetList(times) {
+  for (var i = 0; i < BET_LIST.length; i++) {
+    if (BET_LIST[i].multiple === times) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // 获取默认重新开始数据
@@ -469,7 +545,7 @@ function processingData(dataArr, cityDatas) {
         issue: cityDatas[curData.lottery_id].cur_issue,
         wayId: TEXT_TO_WAY_ID[curData.title],
         lotteryId: curData.lottery_id,
-        multiple: getNormalMultipleNextData(curData.multiple)
+        multiple: getNextTimesData(curData.multiple)
       });
     }
     processedDataArr = getDataFromHistory(tempDataArr);
@@ -580,24 +656,15 @@ function beginConfirm() {
 // 得到三个城市的下一期要投注的数据并投注
 function getNextAndBet() {
   getMoney().then(function(res){
-    // 判断是否需要回归一倍
-    if ((curUserAvaliable - backAvailableMoney) >= everyBackMoney) {
-      needBack = true;
-      preBackAvailableMoney = backAvailableMoney;
-      setPreBackAvailableInputDom(preBackAvailableMoney);
-      backAvailableMoney = curUserAvaliable;
-      setBackAvailableInputDom(backAvailableMoney);
-      backAvailableChangeNum++;
-      setBackAvailableChangeNum(backAvailableChangeNum);
-      console.log('回归一倍的余额基数已经变为:' + backAvailableMoney);
-    }
-  }).then(function(res){
     // 判断一些异常情况
-    if (curUserAvaliable < 200) {
-      return Promise.reject(new CustomError('账户余额必须大于200元'));
+    if (timesIsInbetList(beiginBackTimes)) {
+      return Promise.reject(new CustomError('在表中找不到倍数:' + beiginBackTimes));
     }
-    if (preBetNum % 9 !== 0) {
-      return Promise.reject(new CustomError('跟投历史条数必须是9的倍数'));
+    if (timesIsInbetList(backToTimes)) {
+      return Promise.reject(new CustomError('在表中找不到倍数:' + backToTimes));
+    }
+    if (curUserAvaliable < 200) {
+      return Promise.reject(new CustomError('账户余额必须大于200元才能玩'));
     }
     if (curUserGainMoney >= stopGainMoney) {
       return Promise.reject(new CustomError('您目前赢利额已经大于或等于' + stopGainMoney + '元了，不能再玩了，程序已经自动停止。如果还要玩，请调整盈利额参数'));
