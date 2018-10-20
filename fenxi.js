@@ -35,6 +35,9 @@ function hasSame(lotteryArr, way) {
 }
 
 var dataArr = [];
+
+// allDataArr = [allDataArr[allDataArr.length - 1]];
+
 allDataArr.forEach(function(d){
   dataArr = dataArr.concat(d.data.original_data);
 });
@@ -75,7 +78,6 @@ for (var x = 8; x < 25; x++) {
         }
         if (index1 !== -1 && index2 !== -1 && (index2 - index1) > (x + 1)) {
           qiansanAcount++;
-          i = (index2 + 1);
         }
         index1 = index2;
       }
@@ -97,7 +99,6 @@ for (var x = 8; x < 25; x++) {
         }
         if (index1 !== -1 && index2 !== -1 && (index2 - index1) > (x + 1)) {
           qiansanAcount++;
-          i = (index2 + 1);
         }
         index1 = index2;
       }
@@ -119,7 +120,6 @@ for (var x = 8; x < 25; x++) {
         }
         if (index1 !== -1 && index2 !== -1 && (index2 - index1) > (x + 1)) {
           qiansanAcount++;
-          i = (index2 + 1);
         }
         index1 = index2;
       }

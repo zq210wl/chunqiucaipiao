@@ -844,20 +844,23 @@ function createDoms() {
       stopBet();
     }
   });
-  cntDom.find('#gainStopInputDom').on('change', function(){
-    stopGainMoney = Number(Zepto(this).val());
+  cntDom.find('#closeAlarmBtnDom').click(function(){
+    pauseAlarm();
   });
   cntDom.find('#preNumInputDom').on('change', function(){
     preBetNum = Number(Zepto(this).val());
   });
-  cntDom.find('#everyGainBackInputDom').on('change', function(){
-    everyBackMoney = Number(Zepto(this).val());
+  cntDom.find('#gainStopInputDom').on('change', function(){
+    stopGainMoney = Number(Zepto(this).val());
   });
-  cntDom.find('#backAvailableInputDom').on('change', function(){
-    backAvailableMoney = Number(Zepto(this).val());
+  cntDom.find('#followBetExceedNumInputDom').on('change', function(){
+    followBetExceedNum = Number(Zepto(this).val());
   });
-  cntDom.find('#closeAlarmBtnDom').click(function(){
-    pauseAlarm();
+  cntDom.find('#beiginBackTimesInputDom').on('change', function(){
+    beiginBackTimes = Number(Zepto(this).val());
+  });
+  cntDom.find('#backToTimesInputDom').on('change', function(){
+    backToTimes = Number(Zepto(this).val());
   });
 }
 createDoms();
@@ -867,9 +870,9 @@ function initPageData() {
   // 选项区域
   setPreNumInputDom(preBetNum);
   setGainStopInputDom(stopGainMoney);
-  setEveryGainBackInputDom(everyBackMoney);
-  setBackAvailableInputDom(backAvailableMoney);
-  setPreBackAvailableInputDom(preBackAvailableMoney);
+  setFollowBetExceedNumInputDom(followBetExceedNum);
+  setBeiginBackTimesInputDom(beiginBackTimes);
+  setBackToTimesInputDom(backToTimes);
   // 操作区域
   setBeginBetDomDisabled(false);
   // 错误和动态信息提示区域
@@ -899,37 +902,55 @@ function setCurFillMoneyDom(val) {
 function setCurGainDom(val) {
   Zepto('#curGainDom').html(val);
 }
+
 function setPreNumInputDom(val) {
   Zepto('#preNumInputDom').val(val);
 }
 function setGainStopInputDom(val) {
   Zepto('#gainStopInputDom').val(val);
 }
-function setEveryGainBackInputDom(val) {
-  Zepto('#everyGainBackInputDom').val(val);
+function setFollowBetExceedNumInputDom(val) {
+  Zepto('#followBetExceedNumInputDom').val(val);
 }
-function setBackAvailableInputDom(val) {
-  Zepto('#backAvailableInputDom').val(val);
+function setBeiginBackTimesInputDom(val) {
+  Zepto('#beiginBackTimesInputDom').val(val);
 }
-function setPreBackAvailableInputDom(val) {
-  Zepto('#preBackAvailableInputDom').html(val);
+function setBackToTimesInputDom(val) {
+  Zepto('#backToTimesInputDom').val(val);
 }
-function setBackAvailableChangeNum(val) {
-  Zepto('#backAvailableChangeNum').html(val);
+
+function setQianNotWinIssueNumDom(val) {
+  Zepto('#qianNotWinIssueNumDom').html(val);
 }
+function setZhongNotWinIssueNumDom(val) {
+  Zepto('#zhongNotWinIssueNumDom').html(val);
+}
+function setHouNotWinIssueNumDom(val) {
+  Zepto('#houNotWinIssueNumDom').html(val);
+}
+function setQianCurBetTimesDom(val) {
+  Zepto('#qianCurBetTimesDom').html(val);
+}
+function setZhongCurBetTimesDom(val) {
+  Zepto('#zhongCurBetTimesDom').html(val);
+}
+function setHouCurBetTimesDom(val) {
+  Zepto('#houCurBetTimesDom').html(val);
+}
+
 function setInputsDomReadonly(bool) {
   if (bool) {
-    Zepto('#gainStopInputDom').attr('readonly', true);
-    Zepto('#gainAbandonInputDom').attr('readonly', true);
     Zepto('#preNumInputDom').attr('readonly', true);
-    Zepto('#everyGainBackInputDom').attr('readonly', true);
-    Zepto('#backAvailableInputDom').attr('readonly', true);
+    Zepto('#gainStopInputDom').attr('readonly', true);
+    Zepto('#followBetExceedNumInputDom').attr('readonly', true);
+    Zepto('#beiginBackTimesInputDom').attr('readonly', true);
+    Zepto('#backToTimesInputDom').attr('readonly', true);
   } else {
-    Zepto('#gainStopInputDom').removeAttr('readonly');
-    Zepto('#gainAbandonInputDom').removeAttr('readonly');
     Zepto('#preNumInputDom').removeAttr('readonly');
-    Zepto('#everyGainBackInputDom').removeAttr('readonly');
-    Zepto('#backAvailableInputDom').removeAttr('readonly');
+    Zepto('#gainStopInputDom').removeAttr('readonly');
+    Zepto('#followBetExceedNumInputDom').removeAttr('readonly');
+    Zepto('#beiginBackTimesInputDom').removeAttr('readonly');
+    Zepto('#backToTimesInputDom').removeAttr('readonly');
   }
 }
 function setBeginBetDomDisabled(bool) {
