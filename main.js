@@ -59,6 +59,13 @@ var TEXT_TO_WAY_ID = {
   [HOU_SAN_TITLE]: HOU_SAN_WAY_ID
 };
 
+// 开奖状态
+var ISSUE_STATUS = {
+  NOT_OPEN: 0, // 未开奖
+  NOT_WIN: 2, // 未中奖
+  HAS_WIN: 3 // 已中奖
+}
+
 // 正常投注倍数
 var BET_LIST = [
   { multiple: 1, money: 1.8, index: 1 },
@@ -124,17 +131,20 @@ var curUserAvaliable = 0; // 当前用户的可用余额
 var curUserFillMoney = 0; // 当前用户的充值总金额
 var curUserGainMoney = 0; // 当前用户赢利额
 var notWinDetail = { // 前中后分别有连续多少期没中奖了
-  qian: { times: -1 },
-  zhong: { times: -1 },
-  hou: { times: -1 }
+  [QIAN_SAN_WAY_ID]: { times: -1 },
+  [ZHONG_SAN_WAY_ID]: { times: -1 },
+  [HOU_SAN_WAY_ID]: { times: -1 }
 };
 var curBetDetail = { // 当前前中后投注情况(跟投到多少倍了)
   issue: '', // 奖期
-  qian: { times: -1 },
-  zhong: { times: -1 },
-  hou: { times: -1 }
+  [QIAN_SAN_WAY_ID]: { times: -1 },
+  [ZHONG_SAN_WAY_ID]: { times: -1 },
+  [HOU_SAN_WAY_ID]: { times: -1 }
 };
 
+// 存储数据用
+var preResultData = null;
+var nextIssueData = null;
 
 /*************** 请求相关 ***************/
 var token = '';
@@ -337,16 +347,20 @@ function requestPreResult() {
             var curData = dataArr[i];
             // status 为开奖状态，0: 未开奖，2: 未中奖, 3: 已中奖
             if (curData.status === 0) { // 有未开奖
-              // 5秒钟查询一次开奖结果
+              if (i === 0) {
+                setSoftExcuteStatusDom('正在等待投注开奖结果');
+              }
+              // 2秒钟查询一次开奖结果
               setTimeout(function(){
                 num++;
                 requestProject();
-              }, 5000);
+              }, 2000);
               return;
             }
           }
-          console.log('投注结果已开');
-          resolve(dataArr.slice(0, preBetNum)); 
+          console.log('投注结果已出');
+          preResultData = dataArr.slice(0, preBetNum);
+          resolve(preResultData); 
         } else {
           reject(new CustomError('查询投注结果失败_1'));
         }
@@ -364,13 +378,14 @@ function requestPreResult() {
 }
 
 // 获取下一期数据
-function requestNextIssue(lotteryId) {
+function requestNextIssue() {
   return new Promise(function(resolve, reject){
-    http('POST', apiDomain + '/games/issue?enable=1&lotteryId='+lotteryId, {
-      lottery_id: lotteryId
+    http('POST', apiDomain + '/games/issue?enable=1&lotteryId='+LOTTERY_ID, {
+      lottery_id: LOTTERY_ID
     }).then(function(res){
       if (res && res.isSuccess && res.data) {
-        resolve(res.data);
+        nextIssueData = res.data;
+        resolve(nextIssueData);
       } else {
         reject(new CustomError('查询下一把投注奖期数据失败_1'));
       }
@@ -394,16 +409,21 @@ function requestTrends() {
       if (res && res.isSuccess && res.data) {
         var dataArr = res.data.original_data;
         for (var i = 0; i < dataArr.length; i++) {
-          if (hasSame(dataArr[i].lottery, 1) && notWinDetail.qian.times !== -1) {
-            notWinDetail.qian.times = i;
+          if (hasSame(dataArr[i].lottery, 1) && notWinDetail[QIAN_SAN_WAY_ID].times === -1) {
+            notWinDetail[QIAN_SAN_WAY_ID].times = i;
           }
-          if (hasSame(dataArr[i].lottery, 2) && notWinDetail.zhong.times !== -1) {
-            notWinDetail.zhong.times = i;
+          if (hasSame(dataArr[i].lottery, 2) && notWinDetail[ZHONG_SAN_WAY_ID].times === -1) {
+            notWinDetail[ZHONG_SAN_WAY_ID].times = i;
           }
-          if (hasSame(dataArr[i].lottery, 3) && notWinDetail.hou.times !== -1) {
-            notWinDetail.hou.times = i;
+          if (hasSame(dataArr[i].lottery, 3) && notWinDetail[HOU_SAN_WAY_ID].times === -1) {
+            notWinDetail[HOU_SAN_WAY_ID].times = i;
           }
         }
+        // 更新连续多少期没中奖了的UI
+        setQianNotWinIssueNumDom(notWinDetail[QIAN_SAN_WAY_ID].times);
+        setZhongNotWinIssueNumDom(notWinDetail[ZHONG_SAN_WAY_ID].times);
+        setHouNotWinIssueNumDom(notWinDetail[HOU_SAN_WAY_ID].times);
+        
         resolve(notWinDetail);
       } else {
         reject(new CustomError('查询趋势分析数据失败_1'));
@@ -418,38 +438,17 @@ function requestTrends() {
   });
 }
 
-// 校验上一期数据的正确性和规范性
-function preResultValidate(preData) {
-  if (preData.length === 0 && preBetNum === 0) { // 重新开始投注的就不用校验了
-    return;
+// 设置当前投注情况，已经更新UI
+function setCurBetDetail(dataArr) {
+  for (var i = 0; i < dataArr.length; i++) {
+    var curData = dataArr[i].balls[0];
+    curBetDetail.issue = Object.keys(dataArr[i].orders)[0];
+    curBetDetail[curData[wayId]].times = curData.multiple;
   }
-  if (preData.length % 9 !== 0) {
-    throw new CustomError('上一把数据条数不是9的倍数,数据已经混乱了,请人工手动排查问题');
-  }
-  for (var i = 0; i < (preData.length / 3); i++) {
-    var index0 = i * 3 + 0;
-    var index1 = i * 3 + 1;
-    var index2 = i * 3 + 2;
-    if (!(preData[index0].issue === preData[index1].issue && preData[index1].issue === preData[index2].issue)) {
-      throw new CustomError('上一把数据中的前中后奖期不同,数据混乱了,请人工手动排查问题');
-    }
-    if (!(preData[index0].lottery_id === preData[index1].lottery_id && preData[index1].lottery_id === preData[index2].lottery_id)) {
-      throw new CustomError('上一把数据中的城市顺序对不上号,数据混乱了,请人工手动排查问题');
-    }
-  }
-}
-
-// 校验下一期数据的有效性
-function nextIssueValidate(xinJiang, chongQing, heiLongJiang) {
-  var limitTime = 30 + (preBetNum / 9) * 10;
-  var d = new Date();
-  if (
-      (xinJiang.cur_issue_time - xinJiang.curTime < limitTime) || 
-      (chongQing.cur_issue_time - chongQing.curTime < limitTime) || 
-      (heiLongJiang.cur_issue_time - heiLongJiang.curTime < limitTime)
-  ) {
-    throw new CustomError('投注剩余时间不够，没有执行投注，程序已经停止，若要投注下一期请重新点击开始');
-  }
+  setCurBetIssueDom(curBetDetail.issue);
+  setQianCurBetTimesDom(curBetDetail[QIAN_SAN_WAY_ID].times);
+  setZhongCurBetTimesDom(curBetDetail[ZHONG_SAN_WAY_ID].times);
+  setHouCurBetTimesDom(curBetDetail[HOU_SAN_WAY_ID].times);
 }
 
 // 获取正常倍数的下一个倍数
@@ -472,79 +471,6 @@ function timesIsInbetList(times) {
   return false;
 }
 
-// 获取默认重新开始数据
-function getDefaultData(cityDatas) {
-  var dataArr = [];
-  // 顺序一定不能变化
-  var lotteryIdArr = [XIN_JINAG_ID, CHONG_QING_ID, HEI_LONG_JINAG_ID];
-  for (var i = 0; i < lotteryIdArr.length; i++) {
-    var curLotteryId = lotteryIdArr[i];
-    dataArr.push({
-      issue: cityDatas[curLotteryId].cur_issue,
-      wayId: QIAN_SAN_WAY_ID,
-      lotteryId: curLotteryId,
-      multiple: 1
-    },{
-      issue: cityDatas[curLotteryId].cur_issue,
-      wayId: ZHONG_SAN_WAY_ID,
-      lotteryId: curLotteryId,
-      multiple: 1
-    },
-    {
-      issue: cityDatas[curLotteryId].cur_issue,
-      wayId: HOU_SAN_WAY_ID,
-      lotteryId: curLotteryId,
-      multiple: 1
-    });
-  }
-  return dataArr;
-}
-
-// 基于之前历史数据上来获取数据(拆分逻辑)
-function getDataFromHistory(dataArr) {
-  var processedData = [];
-  var needSplitNum = 0;
-  for (var i = 0; i < dataArr.length; i++) {
-    var curData = Object.assign({}, dataArr[i]);
-    if (curData.multiple >= splitMultiple) {
-      curData.multiple = backToMultiple;
-      needSplitNum = needSplitNum + 1;
-    }
-    processedData.push(curData);
-  }
-  for (var i = 0; i < needSplitNum; i++) {
-    for (var j = 0; j < splitAddNum; j++) {
-      var curData = Object.assign({}, dataArr[j]);
-      curData.multiple = addBeginMultiple;
-      processedData.push(curData);
-    }
-  }
-  // TODO: 如果processedData.length已经大于等于27把所有的加起来合并为9把，找一个合适的止损倍数 
-  // 目前是无线拆分下去的
-  return processedData;
-}
-
-// 处理数据
-function processingData(dataArr, cityDatas) {
-  var processedDataArr = [];
-  if ((dataArr.length === 0 && preBetNum === 0) || needBack) {
-    processedDataArr = getDefaultData(cityDatas);
-  } else if (dataArr.length % 9 === 0) {
-    var tempDataArr = [];
-    for (var i = 0; i < dataArr.length; i++) {
-      var curData = dataArr[i];
-      tempDataArr.push({
-        issue: cityDatas[curData.lottery_id].cur_issue,
-        wayId: TEXT_TO_WAY_ID[curData.title],
-        lotteryId: curData.lottery_id,
-        multiple: getNextTimesData(curData.multiple)
-      });
-    }
-    processedDataArr = getDataFromHistory(tempDataArr);
-  }
-  return processedDataArr;
-}
-
 // 投注API
 function betAPI(index, dataArr, resolve, reject) {
   var data = dataArr[index];
@@ -561,7 +487,7 @@ function betAPI(index, dataArr, resolve, reject) {
       if (index < dataArr.length) {
         setTimeout(function(){
           betAPI(index, dataArr, resolve, reject);
-        }, 100);
+        }, 200);
       } else {
         // 执行完这一把的所有投注之后，动态改变历史跟投数量
         preBetNum = dataArr.length;
@@ -570,14 +496,17 @@ function betAPI(index, dataArr, resolve, reject) {
         setSoftExcuteStatusDom('投注成功完成，当前一共[' + preBetNum + ']条投注');
         console.log('投注成功完成，当前一共[' + preBetNum + ']条投注');
 
+        // 设置当前投注情况
+        setCurBetDetail(dataArr);
+
         resolve();
 
-        // 进入下一轮监听
+        // 2秒后进入下一轮监听
         setTimeout(function() {
           if (betToggle === 1) {
-            getNextAndBet();
+            getDataAndBet();
           }
-        }, 10000);
+        }, 2000);
       }
     } else {
       reject(new CustomError('投注失败_1'));
@@ -630,23 +559,63 @@ function excuteBet(dataArr) {
 
 // 点击投注时对input值进行确认
 function beginConfirm() {
-  if (stopGainMoney <= 0 && !confirm('你确定盈利[' + stopGainMoney + ']元就停止所有的下注吗？')) {
-    return false;
-  }
-  if (everyBackMoney <= 0 && !confirm('你确定每次盈利[' + everyBackMoney + ']元就就回归一倍吗？')) {
-    return false;
-  }
-  if (backAvailableMoney < curUserFillMoney && !confirm('回归一倍的余额基数小于当天充值金额，你确定要这样吗？')) {
-    return false;
-  }
   if (!confirm('你确定选项已经检查无误可以开始投注了吗？')) {
     return false;
   }
   return true;
 }
 
-// 得到三个城市的下一期要投注的数据并投注
-function getNextAndBet() {
+// 判断是否正在跟投
+function judgeIsBetting(key) {
+  for (var i = 0; i < preResultData.length; i++) { // 从上一期投注结果数据中遍历
+    var curData = preResultData[i];
+    // 是否已经正在跟投
+    if (TEXT_TO_WAY_ID[curData.title] === key && curData.status === ISSUE_STATUS.NOT_WIN) { // 正在跟投
+      return curData;
+    } else { // 没有跟投
+      return false;
+    }
+  }
+}
+
+// 拿到上一次投注结果、趋势数据、下一期数据进行处理
+function processingData() {
+  return new Promise(function(resolve, reject){
+    var dataArr = [];
+    for (var key in notWinDetail) {
+      var curObj = notWinDetail[key];
+      // 是否连续超过规定的期数未中
+      if (curObj.times > followBetExceedNum) { // 超过
+        var resData = judgeIsBetting(key);
+        if (res) { // 正在投注
+          var times = getNextTimesData(resData.multiple);
+          // 是否已经跟投到开始返回倍数
+          if (resData.multiple >= beiginBackTimes) {
+            times = backToTimes; // 返回到设置的倍数
+          }
+          if (times > 0) {
+            dataArr.push({
+              issue: nextIssueData.cur_issue,
+              wayId: TEXT_TO_WAY_ID[resData.title],
+              lotteryId: LOTTERY_ID,
+              multiple: times
+            });
+          }
+        } else { // 没有投注(从一倍开始)
+          dataArr.push({
+            issue: nextIssueData.cur_issue,
+            wayId: key,
+            lotteryId: LOTTERY_ID,
+            multiple: 1
+          });
+        }
+      }
+    }
+  });
+}
+
+// 获取相应数据并投注
+function getDataAndBet() {
   getMoney().then(function(res){
     // 判断一些异常情况
     if (timesIsInbetList(beiginBackTimes)) {
@@ -667,55 +636,45 @@ function getNextAndBet() {
     setBeginBetDomDisabled(true); // 设置开始按钮不可点
     setStopBetDomDisabled(false); // 设置停止按钮可点
     betToggle = 1; // 打开投注开关
-    if (preBetNum !== 0) {
-      setSoftExcuteStatusDom('正在等待开奖结果');
-    }
   }).then(requestPreResult).then(function(preResult){
-    // 开奖结果出来后的操作
-    if (preBetNum !== 0) {
-      setSoftExcuteStatusDom('开奖结果已出，正在计算下一把投注数据');
-    } else {
-      setSoftExcuteStatusDom('正在计算投注数据');
+    // 对上一把数据进行校验
+    if (preResult.length === 0) {
+      return Promise.resolve(preResult);
     }
-    return Promise.all([
-      requestNextIssue(XIN_JINAG_ID),
-      requestNextIssue(CHONG_QING_ID),
-      requestNextIssue(HEI_LONG_JINAG_ID)
-    ]).then(function(resList){
-      var preData = preResult;
-      var xinJiang = resList[0];
-      var chongQing = resList[1];
-      var heiLongJiang = resList[2];
-      // 校验数据的正确性
-      preResultValidate(preData);
-      nextIssueValidate(xinJiang, chongQing, heiLongJiang);
-      // 把数据倒序排列一下
-      var allProcessedData = [];
-      for (var i = preData.length - 1; i >= 0; i--) {
-        allProcessedData.push(preData[i]);
+    var issues = [];
+    var wayTexts = {};
+    for (var i = 0; i < preResult.length; i++) {
+      var curData = preResult[i];
+      // 是否为同一期数据
+      if (issues.indexOf(curData.issue) === -1) {
+        issues.push(curData.issue);
       }
-      // 开始处理数据
-      var processedDataArr = processingData(allProcessedData, {
-        [XIN_JINAG_ID]: xinJiang, 
-        [CHONG_QING_ID]: chongQing, 
-        [HEI_LONG_JINAG_ID]: heiLongJiang
-      });
-      // 开始投注
-      return excuteBet(processedDataArr); // 返回一个promsie，这样 excuteBet 中发生异常就可以被下面的catch捕获
-    }).catch(function(err){
-      if (err.name === 'CustomError') {
-        throw err;
-      } else {
-        throw new CustomError('投注异常，请手工去检查目前投注数据状况并完成投注_1');
+      if (issues.length > 1) {
+        return Promise.reject(new CustomError('上一把投注存在不是同一期数据的情况'));
       }
-    });
+      // lottery_id 是否相同，确保是腾讯分分彩
+      if (curData.lottery_id !== LOTTERY_ID) {
+        return Promise.reject(new CustomError('上一把投注存在不是腾讯分分彩的数据的情况'));
+      }
+      // 是否前中后有重复投注的
+      if (wayTexts[curData.title]) {
+        return Promise.reject(new CustomError('上一把投注中[' + curData.title + ']出现不止一次'));
+      }
+      wayTexts.push(curData.title);
+    }
+  }).then(requestTrends).then(requestNextIssue).then(processingData).then(function(processedData){
+    var reverseProcessedData = [];
+    for (var i = processedData.length - 1; i >= 0; i--) {
+      reverseProcessedData.push(preData[i]);
+    }
+    return excuteBet(reverseProcessedData); // 返回一个promsie，这样 excuteBet 中发生异常就可以被下面的catch捕获
   }).catch(function(err){
     printError('投注异常:', err);
     // 所有的异常都统一在这里处理
     if (err.name === 'CustomError') {
       processError(err.message);
     } else {
-      processError('投注异常，请手工去检查目前投注数据状况并完成投注_2');
+      processError('投注异常，请手工去检查目前投注数据状况并完成投注');
     }
   });
 }
@@ -810,7 +769,7 @@ function createDoms() {
       前三：<label id="qianNotWinIssueNumDom">--</label>期;&nbsp; 
       中三：<label id="zhongNotWinIssueNumDom">--</label>期;&nbsp; 
       后三：<label id="houNotWinIssueNumDom">--</label>期; <br/><br/>
-      当前投注到多少倍了：<br/>
+      当前投注到多少倍了(奖期: <label id="curBetIssueDom">--</label>)：<br/>
       前三：<label id="qianCurBetTimesDom">--</label>倍;&nbsp; 
       中三：<label id="zhongCurBetTimesDom">--</label>倍;&nbsp; 
       后三：<label id="houCurBetTimesDom">--</label>倍; 
@@ -836,7 +795,7 @@ function createDoms() {
   cntDom.find('#beginBetDom').click(function(){
     if (beginConfirm()) {
       setSoftExcuteWrongDom('--'); // 重置错误信息
-      getNextAndBet(); // 开始投注
+      getDataAndBet(); // 开始投注
     }
   });
   cntDom.find('#stopBetDom').click(function(){
@@ -863,7 +822,7 @@ function createDoms() {
     backToTimes = Number(Zepto(this).val());
   });
 }
-createDoms();
+// createDoms();
 
 // 初始化页面中的动态数据
 function initPageData() {
@@ -928,6 +887,9 @@ function setZhongNotWinIssueNumDom(val) {
 function setHouNotWinIssueNumDom(val) {
   Zepto('#houNotWinIssueNumDom').html(val);
 }
+function setCurBetIssueDom(val) {
+  Zepto('#curBetIssueDom').html(val);
+}
 function setQianCurBetTimesDom(val) {
   Zepto('#qianCurBetTimesDom').html(val);
 }
@@ -984,3 +946,4 @@ createDoms(); // 创建DOM界面
 linkDB(); // 连接数据库，准备环境
 
 // TODO: 验证所输入的倍数是否在表中可以找到
+// TODO: 对输入进行校验
