@@ -128,20 +128,12 @@ var notWinDetail = { // 前中后分别有连续多少期没中奖了
   zhong: { times: -1 },
   hou: { times: -1 }
 };
-var waitOpenDetail = { // 待开奖奖期的前中后跟投情况(跟投到多少倍了)
+var curBetDetail = { // 当前前中后投注情况(跟投到多少倍了)
   issue: '', // 奖期
   qian: { times: -1 },
   zhong: { times: -1 },
   hou: { times: -1 }
 };
-var winDetail = [ // 已中奖详情，显示前三条数据(显示前中后分别的中奖倍数和中奖金额)
-  {
-    issue: '',
-    qian: { times: -1, money: -1 },
-    zhong: { times: -1, money: -1 },
-    hou: { times: -1, money: -1 }
-  }
-];
 
 
 /*************** 请求相关 ***************/
@@ -788,38 +780,40 @@ function selectDB(database) {
 function createDoms() {
   // 分：信息提示区域、选项区域、操作区域、错误信息提示区域
   var cntDom = Zepto(`<div style="position:fixed;top:0;left:0;bottom:0;right:0;z-index:1000;background:rgba(0,0,0,0.7);">
-    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:14px;margin-top:5px;">
+    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:12px;margin-top:5px;">
       <legend>信息展示区域</legend>
       当前余额：<label id="curAvaliableDom" style="color:#00ff00">--</label> <br/>
       当天充值总金额：<label id="curFillMoneyDom" style="color:#00ff00">--</label> <br/>
-      当天赢利额：<label id="curGainDom" style="color:#00ff00">--</label> <br/>
-    </fieldset>
-    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:14px;margin-top:5px;">
-      <legend>选项区域</legend>
-      从历史投注的前多少条开始跟投(必须是0或9的倍数)：<br/> <input id="preNumInputDom" value='0' style="color:#000;" />(0表示重新从头开始) <br/>
-      盈利多少钱就停止所有的下注：<br/> <input id="gainStopInputDom" value='0' style="color:#000;margin-bottom:5px;" /> <br/>
-      每次盈利多少钱就回归一倍：<br/> <input id="everyGainBackInputDom" value='0' style="color:#000;margin-bottom:5px;" /><br/>
-      回归一倍的余额基数：<br/> <input id="backAvailableInputDom" value='0' style="color:#000;margin-bottom:5px;" />
-      (上一把:<label id="preBackAvailableInputDom">0</label>; 变更次数:<label id="backAvailableChangeNum">0</label>)<br/>
-      </fieldset>
-    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:14px;margin-top:5px;">
-      <legend>操作区域</legend>
-      <button id="beginBetDom" style="color:#000;height:24px;" class="customButtom" disabled>开始投注</button> &nbsp;&nbsp;&nbsp;
-      <button id="stopBetDom" style="color:#000;height:24px;" class="customButtom" disabled>停止投注</button> <br/>
-    </fieldset>
-    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:14px;margin-top:5px;">
-      <legend>错误和动态信息提示区域</legend>
-      当前程序执行状态：<br/> <label id="softExcuteStatusDom" style="color:lightgreen;margin-bottom:5px;display:inline-block;">--</label> <br/>
-      程序异常提示：<br/> <label id="softExcuteWrongDom" style="color:#00ff00;">--</label> <br/>
+      当天赢利额：<label id="curGainDom" style="color:#00ff00">--</label>
     </fieldset>
     <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:12px;margin-top:5px;">
-      <legend>特别注意事项</legend>
-      一、要让程序接着上一把来跟投，必须要遵守以下约定，否则后果自负：<br/>
-      1、上一把从下往上顺序必须是：A城市的前中后、B城市的前中后、C城市的前中后、...;
-      2、上一把的条数必须是9的倍数;
-      3、上一把投出去的倍数必须要在表中能找到; <br/>
-      二、本程序不能跨天玩，当天收盘之后必须要把余额全部提现，不然会导致下一天的金额计算错误;<br/>
-      三、如果有一个城市当天已经到达收盘时间，那么也不能用本程序也玩了，如果要玩需要自己手动去操作;
+      <legend>选项区域</legend>
+      上一次投注数量：<br/> <input id="preNumInputDom" value='0' style="color:#000;margin-bottom:5px;" />(0表示重新开始投注) <br/>
+      盈利多少钱就停止所有的下注：<br/> <input id="gainStopInputDom" value='0' style="color:#000;margin-bottom:5px;" /> <br/>
+      连续超过多少期未中开始跟投：<br/> <input id="followBetExceedNumInputDom" value='0' style="color:#000;margin-bottom:5px;" /><br/>
+      跟到多少倍未中奖就开始返回：<br/> <input id="beiginBackTimesInputDom" value='0' style="color:#000;margin-bottom:5px;" />(必须是表中的倍数)<br/>
+      返回到多少倍：<br/> <input id="backToTimesInputDom" value='0' style="color:#000;margin-bottom:5px;" />(必须是表中的倍数)
+    </fieldset>
+    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:12px;margin-top:5px;">
+      <legend>操作区域</legend>
+      <button id="beginBetDom" style="color:#000;height:24px;" class="customButtom" disabled>开始投注</button> &nbsp;&nbsp;&nbsp;
+      <button id="stopBetDom" style="color:#000;height:24px;" class="customButtom" disabled>停止投注</button>
+    </fieldset>
+    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:12px;margin-top:5px;">
+      <legend>错误和动态信息提示区域</legend>
+      当前程序执行状态：<br/> <label id="softExcuteStatusDom" style="color:lightgreen;margin-bottom:5px;display:inline-block;">--</label> <br/>
+      程序异常提示：<br/> <label id="softExcuteWrongDom" style="color:#00ff00;">--</label>
+    </fieldset>
+    <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:12px;margin-top:5px;">
+      <legend>奖期和投注情况</legend>
+      连续多少期没中奖了：<br/>
+      前三：<label id="qianNotWinIssueNumDom">--</label>期;&nbsp; 
+      中三：<label id="zhongNotWinIssueNumDom">--</label>期;&nbsp; 
+      后三：<label id="houNotWinIssueNumDom">--</label>期; <br/><br/>
+      当前投注到多少倍了：<br/>
+      前三：<label id="qianCurBetTimesDom">--</label>倍;&nbsp; 
+      中三：<label id="zhongCurBetTimesDom">--</label>倍;&nbsp; 
+      后三：<label id="houCurBetTimesDom">--</label>倍; 
     </fieldset>
     <div style="position:absolute;top:10px;right:10px;">
       <button id="closeAlarmBtnDom" class="customButtom" style="height:24px;">关闭报警</button>
@@ -866,6 +860,7 @@ function createDoms() {
     pauseAlarm();
   });
 }
+createDoms();
 
 // 初始化页面中的动态数据
 function initPageData() {
