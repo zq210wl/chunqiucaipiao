@@ -6,16 +6,16 @@
 			"id": 12138137,
 			"serial_number": "D4F3C711AEEB34F92FDABA534A55481C",
 			"type_id": 1,
-			"amount": "999.000000",
+			"amount": "500.000000",
 			"available": "100.080000",
-			"created_at": "2018-10-19 22:24:10"
+			"created_at": "2018-10-21 22:24:10"
 		}, {
 			"id": 11634202,
 			"serial_number": "0A5EACF1C751C5A288DD7BCD23E1BAC0",
 			"type_id": 1,
-			"amount": "999.000000",
+			"amount": "500.000000",
 			"available": "4720.360000",
-			"created_at": "2018-10-14 15:35:28"
+			"created_at": "2018-10-21 15:35:28"
 		}, {
 			"id": 11634034,
 			"serial_number": "F44CB424365C247F3DCC365899B8811A",

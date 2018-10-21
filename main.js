@@ -143,7 +143,7 @@ var curBetDetail = { // 当前前中后投注情况(跟投到多少倍了)
 };
 
 // 存储数据用
-var preResultData = null;
+var preResultData = [];
 var nextIssueData = null;
 
 /*************** 请求相关 ***************/
@@ -336,7 +336,7 @@ function requestPreResult() {
     preMonth = (preMonth > 9 ? preMonth : '0' + preMonth);
     preDay = (preDay > 9 ? preDay : '0' + preDay);
 
-    var params = `start=${preYear}-${preMonth}-${preDay} 00:00:00&end=${year}-${month}-${day} 23:59:59&lottery_id=0&page=1&page_size=${preBetNum}`;
+    var params = `start=${preYear}-${preMonth}-${preDay} 00:00:00&end=${year}-${month}-${day} 23:59:59&lottery_id=0&page=1&page_size=20`;
     var num = 1;
     function requestProject() {
       http('GET', apiDomain + '/reports/project?' + params).then(function(res){
@@ -352,8 +352,10 @@ function requestPreResult() {
               }
               // 2秒钟查询一次开奖结果
               setTimeout(function(){
-                num++;
-                requestProject();
+                if (betToggle === 1) {
+                  num++;
+                  requestProject();
+                }
               }, 2000);
               return;
             }
@@ -402,53 +404,75 @@ function requestNextIssue() {
 // 获取前50条趋势分析数据中的未中奖情况
 function requestTrends() {
   return new Promise(function(resolve, reject){
-    http('POST', apiDomain + '/trends', {
-      lottery_id: LOTTERY_ID,
-      count: 50
-    }).then(function(res){
-      if (res && res.isSuccess && res.data) {
-        var dataArr = res.data.original_data;
-        for (var i = 0; i < dataArr.length; i++) {
-          if (hasSame(dataArr[i].lottery, 1) && notWinDetail[QIAN_SAN_WAY_ID].times === -1) {
-            notWinDetail[QIAN_SAN_WAY_ID].times = i;
+    var num = 1;
+    function requestTrendsInnerFn() {
+      http('POST', apiDomain + '/trends', {
+        lottery_id: LOTTERY_ID,
+        count: 50
+      }).then(function(res){
+        console.log('查询趋势结果[' + num + ']次');
+        if (res && res.isSuccess && res.data) {
+          var dataArr = res.data.original_data;
+          for (var i = 0; i < dataArr.length; i++) {
+            if (hasSame(dataArr[i].lottery, 1) && notWinDetail[QIAN_SAN_WAY_ID].times === -1) {
+              notWinDetail[QIAN_SAN_WAY_ID].times = i;
+            }
+            if (hasSame(dataArr[i].lottery, 2) && notWinDetail[ZHONG_SAN_WAY_ID].times === -1) {
+              notWinDetail[ZHONG_SAN_WAY_ID].times = i;
+            }
+            if (hasSame(dataArr[i].lottery, 3) && notWinDetail[HOU_SAN_WAY_ID].times === -1) {
+              notWinDetail[HOU_SAN_WAY_ID].times = i;
+            }
           }
-          if (hasSame(dataArr[i].lottery, 2) && notWinDetail[ZHONG_SAN_WAY_ID].times === -1) {
-            notWinDetail[ZHONG_SAN_WAY_ID].times = i;
+          // 更新连续多少期没中奖了的UI
+          setQianNotWinIssueNumDom(notWinDetail[QIAN_SAN_WAY_ID].times);
+          setZhongNotWinIssueNumDom(notWinDetail[ZHONG_SAN_WAY_ID].times);
+          setHouNotWinIssueNumDom(notWinDetail[HOU_SAN_WAY_ID].times);
+          
+          if (judgeIsExceedNum()) {
+            resolve(notWinDetail);
+          } else {
+            setSoftExcuteStatusDom('正在监听是否有连续超过' + followBetExceedNum + '期还未中奖的数据');
+            // 2秒钟查询一次趋势结果
+            setTimeout(function(){
+              if (betToggle === 1) {
+                num++;
+                requestTrendsInnerFn();
+              }
+            }, 2000);
           }
-          if (hasSame(dataArr[i].lottery, 3) && notWinDetail[HOU_SAN_WAY_ID].times === -1) {
-            notWinDetail[HOU_SAN_WAY_ID].times = i;
-          }
+        } else {
+          reject(new CustomError('查询趋势分析数据失败_1'));
         }
-        // 更新连续多少期没中奖了的UI
-        setQianNotWinIssueNumDom(notWinDetail[QIAN_SAN_WAY_ID].times);
-        setZhongNotWinIssueNumDom(notWinDetail[ZHONG_SAN_WAY_ID].times);
-        setHouNotWinIssueNumDom(notWinDetail[HOU_SAN_WAY_ID].times);
-        
-        resolve(notWinDetail);
-      } else {
-        reject(new CustomError('查询趋势分析数据失败_1'));
-      }
-    }).catch(function(err){
-      if (err.name === 'CustomError') {
-        reject(err);
-      } else {
-        reject(new CustomError('查询趋势分析数据失败_2'));
-      }
-    });
+      }).catch(function(err){
+        if (err.name === 'CustomError') {
+          reject(err);
+        } else {
+          reject(new CustomError('查询趋势分析数据失败_2'));
+        }
+      });
+    }
+    requestTrendsInnerFn();
   });
 }
 
-// 设置当前投注情况，已经更新UI
+// 设置当前投注情况，并更新UI
 function setCurBetDetail(dataArr) {
   for (var i = 0; i < dataArr.length; i++) {
     var curData = dataArr[i].balls[0];
     curBetDetail.issue = Object.keys(dataArr[i].orders)[0];
-    curBetDetail[curData[wayId]].times = curData.multiple;
+    curBetDetail[curData['wayId']].times = curData.multiple;
   }
   setCurBetIssueDom(curBetDetail.issue);
-  setQianCurBetTimesDom(curBetDetail[QIAN_SAN_WAY_ID].times);
-  setZhongCurBetTimesDom(curBetDetail[ZHONG_SAN_WAY_ID].times);
-  setHouCurBetTimesDom(curBetDetail[HOU_SAN_WAY_ID].times);
+  if (curBetDetail[QIAN_SAN_WAY_ID].times > 0) {
+    setQianCurBetTimesDom(curBetDetail[QIAN_SAN_WAY_ID].times);
+  }
+  if (curBetDetail[ZHONG_SAN_WAY_ID].times > 0) {
+    setZhongCurBetTimesDom(curBetDetail[ZHONG_SAN_WAY_ID].times);
+  }
+  if (curBetDetail[HOU_SAN_WAY_ID].times > 0) {
+    setHouCurBetTimesDom(curBetDetail[HOU_SAN_WAY_ID].times);
+  }
 }
 
 // 获取正常倍数的下一个倍数
@@ -485,8 +509,11 @@ function betAPI(index, dataArr, resolve, reject) {
       console.log('第[' + (index+1) + ']条投注成功');
       index++;
       if (index < dataArr.length) {
+        // 间隔0.2秒投注一次
         setTimeout(function(){
-          betAPI(index, dataArr, resolve, reject);
+          if (betToggle === 1) {
+            betAPI(index, dataArr, resolve, reject);
+          }
         }, 200);
       } else {
         // 执行完这一把的所有投注之后，动态改变历史跟投数量
@@ -512,6 +539,7 @@ function betAPI(index, dataArr, resolve, reject) {
       reject(new CustomError('投注失败_1'));
     }
   }).catch(function(err){
+    console.log('原始报错信息：', err);
     if (err.name === 'CustomError') {
       reject(err);
     } else {
@@ -565,17 +593,26 @@ function beginConfirm() {
   return true;
 }
 
+// 判断是否存在超过设置的未开奖期数
+function judgeIsExceedNum(key) {
+  for (var key in notWinDetail) {
+    if (notWinDetail[key].times > followBetExceedNum) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // 判断是否正在跟投
 function judgeIsBetting(key) {
   for (var i = 0; i < preResultData.length; i++) { // 从上一期投注结果数据中遍历
     var curData = preResultData[i];
-    // 是否已经正在跟投
-    if (TEXT_TO_WAY_ID[curData.title] === key && curData.status === ISSUE_STATUS.NOT_WIN) { // 正在跟投
+    // 是否已经正在跟投，有的话返回跟投数据
+    if (Number(TEXT_TO_WAY_ID[curData.title]) === Number(key) && Number(curData.status) === Number(ISSUE_STATUS.NOT_WIN)) { // 正在跟投
       return curData;
-    } else { // 没有跟投
-      return false;
     }
   }
+  return false;
 }
 
 // 拿到上一次投注结果、趋势数据、下一期数据进行处理
@@ -584,10 +621,10 @@ function processingData() {
     var dataArr = [];
     for (var key in notWinDetail) {
       var curObj = notWinDetail[key];
-      // 是否连续超过规定的期数未中
+      // 前中后是否连续超过规定的期数未中
       if (curObj.times > followBetExceedNum) { // 超过
         var resData = judgeIsBetting(key);
-        if (res) { // 正在投注
+        if (resData) { // 正在投注
           var times = getNextTimesData(resData.multiple);
           // 是否已经跟投到开始返回倍数
           if (resData.multiple >= beiginBackTimes) {
@@ -611,6 +648,7 @@ function processingData() {
         }
       }
     }
+    resolve(dataArr);
   });
 }
 
@@ -618,10 +656,10 @@ function processingData() {
 function getDataAndBet() {
   getMoney().then(function(res){
     // 判断一些异常情况
-    if (timesIsInbetList(beiginBackTimes)) {
+    if (!timesIsInbetList(beiginBackTimes)) {
       return Promise.reject(new CustomError('在表中找不到倍数:' + beiginBackTimes));
     }
-    if (timesIsInbetList(backToTimes)) {
+    if (!timesIsInbetList(backToTimes)) {
       return Promise.reject(new CustomError('在表中找不到倍数:' + backToTimes));
     }
     if (curUserAvaliable < 200) {
@@ -660,12 +698,12 @@ function getDataAndBet() {
       if (wayTexts[curData.title]) {
         return Promise.reject(new CustomError('上一把投注中[' + curData.title + ']出现不止一次'));
       }
-      wayTexts.push(curData.title);
+      wayTexts[curData.title] = 1;
     }
   }).then(requestTrends).then(requestNextIssue).then(processingData).then(function(processedData){
     var reverseProcessedData = [];
     for (var i = processedData.length - 1; i >= 0; i--) {
-      reverseProcessedData.push(preData[i]);
+      reverseProcessedData.push(processedData[i]);
     }
     return excuteBet(reverseProcessedData); // 返回一个promsie，这样 excuteBet 中发生异常就可以被下面的catch捕获
   }).catch(function(err){
