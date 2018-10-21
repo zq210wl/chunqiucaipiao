@@ -612,21 +612,19 @@ function processingData() {
       // 前中后是否连续超过规定的期数未中
       if (curObj.times > followBetExceedNum) { // 超过
         var resData = judgeIsBetting(key);
-        if (resData) { // 正在投注
-          if (Number(resData.status) === Number(ISSUE_STATUS.NOT_WIN)) {
-            var times = getNextTimesData(resData.multiple);
-            // 是否已经跟投到开始返回倍数
-            if (resData.multiple >= beiginBackTimes) {
-              times = backToTimes; // 返回到设置的倍数
-            }
-            if (times > 0) {
-              dataArr.push({
-                issue: nextIssueData.cur_issue,
-                wayId: TEXT_TO_WAY_ID[resData.title],
-                lotteryId: LOTTERY_ID,
-                multiple: times
-              });
-            }
+        if (resData && Number(resData.status) === Number(ISSUE_STATUS.NOT_WIN)) { // 正在投注
+          var times = getNextTimesData(resData.multiple);
+          // 是否已经跟投到开始返回倍数
+          if (resData.multiple >= beiginBackTimes) {
+            times = backToTimes; // 返回到设置的倍数
+          }
+          if (times > 0) {
+            dataArr.push({
+              issue: nextIssueData.cur_issue,
+              wayId: TEXT_TO_WAY_ID[resData.title],
+              lotteryId: LOTTERY_ID,
+              multiple: times
+            });
           }
         } else { // 没有投注(从一倍开始)
           dataArr.push({
