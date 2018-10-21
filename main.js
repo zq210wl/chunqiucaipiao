@@ -413,14 +413,20 @@ function requestTrends() {
         console.log('查询趋势结果[' + num + ']次');
         if (res && res.isSuccess && res.data) {
           var dataArr = res.data.original_data;
+          var qianTimes = -1;
+          var zhongTimes = -1;
+          var houTimes = -1;
           for (var i = 0; i < dataArr.length; i++) {
-            if (hasSame(dataArr[i].lottery, 1) && notWinDetail[QIAN_SAN_WAY_ID].times === -1) {
+            if (hasSame(dataArr[i].lottery, 1) && qianTimes === -1) {
+              qianTimes = i;
               notWinDetail[QIAN_SAN_WAY_ID].times = i;
             }
-            if (hasSame(dataArr[i].lottery, 2) && notWinDetail[ZHONG_SAN_WAY_ID].times === -1) {
+            if (hasSame(dataArr[i].lottery, 2) && zhongTimes === -1) {
+              zhongTimes = i;
               notWinDetail[ZHONG_SAN_WAY_ID].times = i;
             }
-            if (hasSame(dataArr[i].lottery, 3) && notWinDetail[HOU_SAN_WAY_ID].times === -1) {
+            if (hasSame(dataArr[i].lottery, 3) && houTimes === -1) {
+              houTimes = i;
               notWinDetail[HOU_SAN_WAY_ID].times = i;
             }
           }
