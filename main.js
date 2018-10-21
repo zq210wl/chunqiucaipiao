@@ -352,6 +352,7 @@ function requestPreResult() {
               return;
             }
           }
+          getMoney(); // 结果出来后，查询更新一下余额
           console.log('投注结果已出');
           preResultData = dataArr.slice(0, preBetNum);
           resolve(preResultData); 
