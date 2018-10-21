@@ -36,7 +36,7 @@ function hasSame(lotteryArr, way) {
 
 var dataArr = [];
 
-// allDataArr = [allDataArr[allDataArr.length - 1]];
+allDataArr = [allDataArr[allDataArr.length - 1]];
 
 allDataArr.forEach(function(d){
   dataArr = dataArr.concat(d.data.original_data);

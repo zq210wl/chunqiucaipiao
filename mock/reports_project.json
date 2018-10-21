@@ -6,7 +6,7 @@
 			"id": 5863336,
 			"serial_number": "B679F0D21C49774426812C2EDB2509C9",
 			"prize_group": "1956",
-			"multiple": 234,
+			"multiple": 38,
 			"issue": "0278364",
 			"title": "前三组三复式",
 			"position": "",
@@ -37,7 +37,7 @@
 			"commission": 0,
 			"winning_number": ["5", "1", "8", "3", "0"],
 			"prize": "3.6",
-			"status": 2,
+			"status": 3,
 			"bought_at": "2018-10-07 15:14:52",
 			"bet_prize_group": null
 		}, {
@@ -56,7 +56,7 @@
 			"commission": 0,
 			"winning_number": ["5", "8", "8", "3", "0"],
 			"prize": "1.8",
-			"status": 0,
+			"status": 2,
 			"bought_at": "2018-10-07 15:14:46",
 			"bet_prize_group": null
 		}, {

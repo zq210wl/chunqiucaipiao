@@ -119,14 +119,16 @@ var BET_COMMON_PARAMS = {
 var betToggle = 0; // 投注开关，开：1，关：0
 // 输入项
 var preBetNum = 0; // 上一次投注数量, 需要用户自己输入，0就是重新开始
-var stopAvailableMoney = 0; // 余额大于多少钱就停止所有的下注
-var followBetExceedNum = -1; // 连续超过多少期未中开始跟投(-1表示马上开始)
-var beiginBackTimes = 2556; // 跟到多少倍未中奖就开始返回(必须是表中的倍数)
+var stopGainMoney = 500; // 盈利多少钱就停止所有的下注
+var followBetExceedNum = 9; // 连续超过多少期未中开始跟投
+var beiginBackTimes = 234; // 跟到多少倍未中奖就开始返回(必须是表中的倍数)
 var backToTimes = 38; // 返回到多少倍(必须是表中的倍数)
 
 // 展示项
 var curUserAvaliable = 0; // 当前用户的可用余额
-var notWinDetail = { // 前中后分别有连续查过多少期没中奖了
+var curUserFillMoney = 0; // 当前用户的充值总金额
+var curUserGainMoney = 0; // 当前用户赢利额
+var notWinDetail = { // 前中后分别有连续多少期没中奖了
   [QIAN_SAN_WAY_ID]: { times: -1 },
   [ZHONG_SAN_WAY_ID]: { times: -1 },
   [HOU_SAN_WAY_ID]: { times: -1 }
@@ -246,18 +248,66 @@ function getAvailable() {
   });
 };
 
-// 获取可用余额
-function getMoney() {
+// 查询当天充值总金额
+function getTransaction() {
   return new Promise(function(resolve, reject){
-    getAvailable().then(function(res){
-      curUserAvaliable = res;
-      setCurAvaliableDom(curUserAvaliable);
-      resolve(curUserAvaliable);
+    var d = new Date();
+    var year = d.getFullYear();
+    var month = d.getMonth() + 1;
+    var day = d.getDate();
+    month = (month > 9 ? month : '0' + month);
+    day = (day > 9 ? day : '0' + day);
+
+    var params = `start=${year}-${month}-${day} 08:00:00&end=${year}-${month}-${day} 23:59:59&type_id=1&page=1&page_size=20`;
+    http('GET', apiDomain + '/reports/transaction?' + params).then(function(res){
+      if (res && res.isSuccess && res.data && res.data.data) {
+        var fillMoney = 0;
+        for (var i = 0; i < res.data.data.length; i++) {
+          var curData = res.data.data[i];
+          var dArr = curData.created_at.slice(0,10).split('-');
+          var d = new Date();
+          var year = d.getFullYear() + '';
+          var month = d.getMonth() + 1 + '';
+          var day = d.getDate() + '';
+          if (year === dArr[0] && month === dArr[1] && day === dArr[2]) {
+            fillMoney = fillMoney + Number(curData.amount);
+          }
+        }
+        fillMoney = Number(Number(fillMoney).toFixed(2));
+        console.log('查询当天充值总金额成功:', fillMoney);
+        resolve(fillMoney);
+      } else {
+        reject(new CustomError('查询当天充值总金额失败_1'));
+      }
     }).catch(function(err){
       if (err.name === 'CustomError') {
         reject(err);
       } else {
-        reject(new CustomError('获取可用余额额失败'));
+        reject(new CustomError('查询当天充值总金额失败_2'));
+      }
+    });
+  });
+};
+
+// 获取可用余额、充值总金额、盈利额
+function getMoney() {
+  return new Promise(function(resolve, reject){
+    Promise.all([ 
+      getAvailable(),
+      getTransaction()
+    ]).then(function(resList){
+      curUserAvaliable = resList[0];
+      curUserFillMoney = resList[1];
+      curUserGainMoney = Number((curUserAvaliable - curUserFillMoney).toFixed(2));
+      setCurAvaliableDom(curUserAvaliable);
+      setCurFillMoneyDom(curUserFillMoney);
+      setCurGainDom(curUserGainMoney);
+      resolve();
+    }).catch(function(err){
+      if (err.name === 'CustomError') {
+        reject(err);
+      } else {
+        reject(new CustomError('获取可用余额、充值总金额、盈利额失败'));
       }
     });
   });
@@ -384,7 +434,6 @@ function requestTrends() {
           setZhongNotWinIssueNumDom(notWinDetail[ZHONG_SAN_WAY_ID].times);
           setHouNotWinIssueNumDom(notWinDetail[HOU_SAN_WAY_ID].times);
           
-          // 是否存在超过设置的未开奖期数
           if (judgeIsExceedNum()) {
             resolve(notWinDetail);
           } else {
@@ -421,7 +470,7 @@ function setCurBetDetail(dataArr) {
   }
   // 根据投注数据设置
   for (var i = 0; i < dataArr.length; i++) {
-    var curData = dataArr[i].balls[0];
+    var curData = dataArr[i].originalBalls[0];
     curBetDetail.issue = Object.keys(dataArr[i].orders)[0];
     curBetDetail[curData['wayId']].times = curData.multiple;
   }
@@ -466,33 +515,15 @@ function timesIsInbetList(times) {
 
 // 投注API
 function betAPI(index, dataArr, resolve, reject) {
-  if (dataArr.length === 0) { // 没有可以投注的(没有超过规定倍数的数据)
-    // 动态改变历史跟投数量
-    preBetNum = dataArr.length;
-    setPreNumInputDom(preBetNum);
-
-    // 设置当前投注情况
-    setCurBetDetail(dataArr);
-
-    resolve();
-
-    // 2秒后进入下一轮监听
-    setTimeout(function() {
-      if (betToggle === 1) {
-        getDataAndBet();
-      }
-    }, 2000);
-    return;
-  }
   var data = dataArr[index];
   var encryptObj = CryptoJS.AES.encrypt(JSON.stringify(data.balls), CryptoJS.enc.Utf8.parse("C194V1RBJG8MJPEL"), {
     iv: CryptoJS.enc.Utf8.parse("ARC49SBQE76B8QZT"),
     mode: CryptoJS.mode.CBC,
     padding: CryptoJS.pad.Pkcs7
   });
-  http('POST', apiDomain + '/games/bet', Object.assign({}, data, { 
-    balls: encryptObj.toString() 
-  })).then(function(res){
+  data.originalBalls = data.balls;
+  data.balls = encryptObj.toString();
+  http('POST', apiDomain + '/games/bet', data).then(function(res){
     if (res && res.isSuccess) {
       console.log('第[' + (index+1) + ']条投注成功');
       index++;
@@ -655,8 +686,8 @@ function getDataAndBet() {
     if (curUserAvaliable < 200) {
       return Promise.reject(new CustomError('账户余额必须大于200元才能玩'));
     }
-    if (curUserAvaliable > stopAvailableMoney) {
-      return Promise.reject(new CustomError('您目前余额已经大于' + stopAvailableMoney + '元了，不能再玩了，程序已经自动停止。如果还要玩，请调整余额参数'));
+    if (curUserGainMoney >= stopGainMoney) {
+      return Promise.reject(new CustomError('您目前赢利额已经大于或等于' + stopGainMoney + '元了，不能再玩了，程序已经自动停止。如果还要玩，请调整盈利额参数'));
     }
   }).then(function(res){
     // 前面判断都验证通过之后的操作
@@ -691,6 +722,9 @@ function getDataAndBet() {
       wayTexts[curData.title] = 1;
     }
   }).then(requestTrends).then(requestNextIssue).then(processingData).then(function(processedData){
+    if (processedData.length === 0) { // 没有超过规定倍数的数据
+      return Promise.resolve();
+    }
     var reverseProcessedData = [];
     for (var i = processedData.length - 1; i >= 0; i--) {
       reverseProcessedData.push(processedData[i]);
@@ -739,10 +773,11 @@ function selectDB(database) {
     token = request.result;
     console.log('查询token成功');
 
-    // 查询余额
+    // 查询钱相关数据
     getMoney().then(function(res){
       if (curUserAvaliable) {
         // 环境就绪，可以开始投注
+        backAvailableMoney = curUserFillMoney; // 初始化回归一余额基数
         initPageData();
       } else {
         throw new CustomError('当前无可用金额');
@@ -768,13 +803,15 @@ function createDoms() {
   var cntDom = Zepto(`<div style="position:fixed;top:0;left:0;bottom:0;right:0;z-index:1000;background:rgba(0,0,0,0.7);">
     <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:12px;margin-top:5px;">
       <legend>信息展示区域</legend>
-      当前余额：<label id="curAvaliableDom" style="color:#00ff00">--</label>
+      当前余额：<label id="curAvaliableDom" style="color:#00ff00">--</label> <br/>
+      当天充值总金额：<label id="curFillMoneyDom" style="color:#00ff00">--</label> <br/>
+      当天赢利额：<label id="curGainDom" style="color:#00ff00">--</label>
     </fieldset>
     <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:12px;margin-top:5px;">
       <legend>选项区域</legend>
       上一次投注数量：<br/> <input id="preNumInputDom" value='0' style="color:#000;margin-bottom:5px;" />(0表示重新开始投注) <br/>
-      余额大于多少钱就停止所有的下注：<br/> <input id="stopAvailableInputDom" value='0' style="color:#000;margin-bottom:5px;" /> <br/>
-      连续超过多少期未中开始跟投：<br/> <input id="followBetExceedNumInputDom" value='-1' style="color:#000;margin-bottom:5px;" />(-1表示马上开始)<br/>
+      盈利多少钱就停止所有的下注：<br/> <input id="gainStopInputDom" value='0' style="color:#000;margin-bottom:5px;" /> <br/>
+      连续超过多少期未中开始跟投：<br/> <input id="followBetExceedNumInputDom" value='0' style="color:#000;margin-bottom:5px;" /><br/>
       跟到多少倍未中奖就开始返回：<br/> <input id="beiginBackTimesInputDom" value='0' style="color:#000;margin-bottom:5px;" />(必须是表中的倍数,最大支持跟到:3827倍)<br/>
       返回到多少倍：<br/> <input id="backToTimesInputDom" value='0' style="color:#000;margin-bottom:5px;" />(必须是表中的倍数)
     </fieldset>
@@ -831,19 +868,19 @@ function createDoms() {
   cntDom.find('#closeAlarmBtnDom').click(function(){
     pauseAlarm();
   });
-  cntDom.find('#preNumInputDom').on('input', function(){
+  cntDom.find('#preNumInputDom').on('change', function(){
     preBetNum = Number(Zepto(this).val());
   });
-  cntDom.find('#stopAvailableInputDom').on('input', function(){
-    stopAvailableMoney = Number(Zepto(this).val());
+  cntDom.find('#gainStopInputDom').on('change', function(){
+    stopGainMoney = Number(Zepto(this).val());
   });
-  cntDom.find('#followBetExceedNumInputDom').on('input', function(){
+  cntDom.find('#followBetExceedNumInputDom').on('change', function(){
     followBetExceedNum = Number(Zepto(this).val());
   });
-  cntDom.find('#beiginBackTimesInputDom').on('input', function(){
+  cntDom.find('#beiginBackTimesInputDom').on('change', function(){
     beiginBackTimes = Number(Zepto(this).val());
   });
-  cntDom.find('#backToTimesInputDom').on('input', function(){
+  cntDom.find('#backToTimesInputDom').on('change', function(){
     backToTimes = Number(Zepto(this).val());
   });
 }
@@ -853,7 +890,7 @@ function createDoms() {
 function initPageData() {
   // 选项区域
   setPreNumInputDom(preBetNum);
-  setStopAvailableInputDom(stopAvailableMoney);
+  setGainStopInputDom(stopGainMoney);
   setFollowBetExceedNumInputDom(followBetExceedNum);
   setBeiginBackTimesInputDom(beiginBackTimes);
   setBackToTimesInputDom(backToTimes);
@@ -880,12 +917,18 @@ function processError(message) {
 function setCurAvaliableDom(val) {
   Zepto('#curAvaliableDom').html(val);
 }
+function setCurFillMoneyDom(val) {
+  Zepto('#curFillMoneyDom').html(val);
+}
+function setCurGainDom(val) {
+  Zepto('#curGainDom').html(val);
+}
 
 function setPreNumInputDom(val) {
   Zepto('#preNumInputDom').val(val);
 }
-function setStopAvailableInputDom(val) {
-  Zepto('#stopAvailableInputDom').val(val);
+function setGainStopInputDom(val) {
+  Zepto('#gainStopInputDom').val(val);
 }
 function setFollowBetExceedNumInputDom(val) {
   Zepto('#followBetExceedNumInputDom').val(val);
@@ -922,13 +965,13 @@ function setHouCurBetTimesDom(val) {
 function setInputsDomReadonly(bool) {
   if (bool) {
     Zepto('#preNumInputDom').attr('readonly', true);
-    Zepto('#stopAvailableInputDom').attr('readonly', true);
+    Zepto('#gainStopInputDom').attr('readonly', true);
     Zepto('#followBetExceedNumInputDom').attr('readonly', true);
     Zepto('#beiginBackTimesInputDom').attr('readonly', true);
     Zepto('#backToTimesInputDom').attr('readonly', true);
   } else {
     Zepto('#preNumInputDom').removeAttr('readonly');
-    Zepto('#stopAvailableInputDom').removeAttr('readonly');
+    Zepto('#gainStopInputDom').removeAttr('readonly');
     Zepto('#followBetExceedNumInputDom').removeAttr('readonly');
     Zepto('#beiginBackTimesInputDom').removeAttr('readonly');
     Zepto('#backToTimesInputDom').removeAttr('readonly');
@@ -964,4 +1007,5 @@ function pauseAlarm(){
 createDoms(); // 创建DOM界面
 linkDB(); // 连接数据库，准备环境
 
+// TODO: 验证所输入的倍数是否在表中可以找到
 // TODO: 对输入进行校验
