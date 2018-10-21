@@ -105,22 +105,7 @@ var BET_COMMON_PARAMS = {
   moneyunit: 0.01, // 投注的单位, 分
   onePrice: 2, // 投一注的价钱
   num: 90, // 一共投多少注, 全投注：90
-  prize_group: 1956 // 奖金组
-};
-
-/*************** 投注需要用到的数据 - start ***************/
-var BET_COMMON_PARAMS = { // 默认公共投注数据
-  uuid: "",
-  bet_source: "browser",
-  isTrace: 0,
-  is_encoded: 1,
-  traceStopValue: 1, 
-  traceWinStop: 1,
-  ball: "0123456789", // 投注的数字, 全投注："0123456789"
-  moneyunit: 0.01, // 投注的单位, 分
-  onePrice: 2, // 投一注的价钱
-  num: 90, // 一共投多少注, 全投注：90
-  prize_group: 1956 // 奖金组
+  prize_group: 1960 // 奖金组
 };
 
 /*************** 用户选项和操作 ***************/
@@ -156,7 +141,7 @@ var nextIssueData = null;
 /*************** 请求相关 ***************/
 var token = '';
 var apiDomain = 'https://api.chunqiu1.com'; // 接口域名
-apiDomain = ''; // TODO: 测试，删除
+// apiDomain = ''; // TODO: 测试，删除
 
 // 自定义错误类型
 function CustomError(message) {
@@ -478,7 +463,7 @@ function setCurBetDetail(dataArr) {
   }
   // 根据投注数据设置
   for (var i = 0; i < dataArr.length; i++) {
-    var curData = dataArr[i].balls[0];
+    var curData = dataArr[i].originalBalls[0];
     curBetDetail.issue = Object.keys(dataArr[i].orders)[0];
     curBetDetail[curData['wayId']].times = curData.multiple;
   }
@@ -529,7 +514,8 @@ function betAPI(index, dataArr, resolve, reject) {
     mode: CryptoJS.mode.CBC,
     padding: CryptoJS.pad.Pkcs7
   });
-  data.ball = encryptObj.toString();
+  data.originalBalls = data.balls;
+  data.balls = encryptObj.toString();
   http('POST', apiDomain + '/games/bet', data).then(function(res){
     if (res && res.isSuccess) {
       console.log('第[' + (index+1) + ']条投注成功');
