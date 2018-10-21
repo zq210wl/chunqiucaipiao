@@ -90,7 +90,13 @@ var BET_LIST = [
   { multiple: 109, money: 196.2, index: 13 },
   { multiple: 159, money: 286.2, index: 14 },
   { multiple: 234, money: 421.2, index: 15 },
-  { multiple: 346, money: 622.8, index: 16 }
+  { multiple: 346, money: 622.8, index: 16 },
+  { multiple: 515, money: 927, index: 17 },
+  { multiple: 768, money: 1382.4, index: 18 },
+  { multiple: 1145, money: 2061, index: 19 },
+  { multiple: 1710, money: 3078, index: 20 },
+  { multiple: 2556, money: 4600.8, index: 21 },
+  { multiple: 3827, money: 6888.6, index: 22 }
 ];
 
 // 默认公共投注参数数据
@@ -252,7 +258,7 @@ function getTransaction() {
     month = (month > 9 ? month : '0' + month);
     day = (day > 9 ? day : '0' + day);
 
-    var params = `start=${year}-${month}-${day} 08:00:00&end=${year}-${month}-${day} 23:59:59&type_id=1&page=1&page_size=1`;
+    var params = `start=${year}-${month}-${day} 08:00:00&end=${year}-${month}-${day} 23:59:59&type_id=1&page=1&page_size=20`;
     http('GET', apiDomain + '/reports/transaction?' + params).then(function(res){
       if (res && res.isSuccess && res.data && res.data.data) {
         var fillMoney = 0;
@@ -803,7 +809,7 @@ function createDoms() {
       上一次投注数量：<br/> <input id="preNumInputDom" value='0' style="color:#000;margin-bottom:5px;" />(0表示重新开始投注) <br/>
       盈利多少钱就停止所有的下注：<br/> <input id="gainStopInputDom" value='0' style="color:#000;margin-bottom:5px;" /> <br/>
       连续超过多少期未中开始跟投：<br/> <input id="followBetExceedNumInputDom" value='0' style="color:#000;margin-bottom:5px;" /><br/>
-      跟到多少倍未中奖就开始返回：<br/> <input id="beiginBackTimesInputDom" value='0' style="color:#000;margin-bottom:5px;" />(必须是表中的倍数)<br/>
+      跟到多少倍未中奖就开始返回：<br/> <input id="beiginBackTimesInputDom" value='0' style="color:#000;margin-bottom:5px;" />(必须是表中的倍数,最大支持跟到:3827倍)<br/>
       返回到多少倍：<br/> <input id="backToTimesInputDom" value='0' style="color:#000;margin-bottom:5px;" />(必须是表中的倍数)
     </fieldset>
     <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:12px;margin-top:5px;">
