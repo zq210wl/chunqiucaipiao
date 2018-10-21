@@ -59,6 +59,13 @@ var TEXT_TO_WAY_ID = {
   [HOU_SAN_TITLE]: HOU_SAN_WAY_ID
 };
 
+// wayId数组
+var WAY_ID_ARR = [
+  QIAN_SAN_WAY_ID,
+  ZHONG_SAN_WAY_ID,
+  HOU_SAN_WAY_ID
+];
+
 // 开奖状态
 var ISSUE_STATUS = {
   NOT_OPEN: 0, // 未开奖
@@ -464,20 +471,33 @@ function requestTrends() {
 
 // 设置当前投注情况，并更新UI
 function setCurBetDetail(dataArr) {
+  // 重置为默认
+  for (var i = 0; i < WAY_ID_ARR.length; i++) {
+    curBetDetail.issue = '';
+    curBetDetail[WAY_ID_ARR[i]].times = -1;
+  }
+  // 根据投注数据设置
   for (var i = 0; i < dataArr.length; i++) {
     var curData = dataArr[i].balls[0];
     curBetDetail.issue = Object.keys(dataArr[i].orders)[0];
     curBetDetail[curData['wayId']].times = curData.multiple;
   }
+  // 设置UI
   setCurBetIssueDom(curBetDetail.issue);
   if (curBetDetail[QIAN_SAN_WAY_ID].times > 0) {
     setQianCurBetTimesDom(curBetDetail[QIAN_SAN_WAY_ID].times);
+  } else {
+    setQianCurBetTimesDom('--')
   }
   if (curBetDetail[ZHONG_SAN_WAY_ID].times > 0) {
     setZhongCurBetTimesDom(curBetDetail[ZHONG_SAN_WAY_ID].times);
+  } else {
+    setZhongCurBetTimesDom('--');
   }
   if (curBetDetail[HOU_SAN_WAY_ID].times > 0) {
     setHouCurBetTimesDom(curBetDetail[HOU_SAN_WAY_ID].times);
+  } else {
+    setHouCurBetTimesDom('--');
   }
 }
 
@@ -614,7 +634,7 @@ function judgeIsBetting(key) {
   for (var i = 0; i < preResultData.length; i++) { // 从上一期投注结果数据中遍历
     var curData = preResultData[i];
     // 是否已经正在跟投，有的话返回跟投数据
-    if (Number(TEXT_TO_WAY_ID[curData.title]) === Number(key) && Number(curData.status) === Number(ISSUE_STATUS.NOT_WIN)) { // 正在跟投
+    if (Number(TEXT_TO_WAY_ID[curData.title]) === Number(key)) { // 正在跟投
       return curData;
     }
   }
@@ -631,18 +651,20 @@ function processingData() {
       if (curObj.times > followBetExceedNum) { // 超过
         var resData = judgeIsBetting(key);
         if (resData) { // 正在投注
-          var times = getNextTimesData(resData.multiple);
-          // 是否已经跟投到开始返回倍数
-          if (resData.multiple >= beiginBackTimes) {
-            times = backToTimes; // 返回到设置的倍数
-          }
-          if (times > 0) {
-            dataArr.push({
-              issue: nextIssueData.cur_issue,
-              wayId: TEXT_TO_WAY_ID[resData.title],
-              lotteryId: LOTTERY_ID,
-              multiple: times
-            });
+          if (Number(resData.status) === Number(ISSUE_STATUS.NOT_WIN)) {
+            var times = getNextTimesData(resData.multiple);
+            // 是否已经跟投到开始返回倍数
+            if (resData.multiple >= beiginBackTimes) {
+              times = backToTimes; // 返回到设置的倍数
+            }
+            if (times > 0) {
+              dataArr.push({
+                issue: nextIssueData.cur_issue,
+                wayId: TEXT_TO_WAY_ID[resData.title],
+                lotteryId: LOTTERY_ID,
+                multiple: times
+              });
+            }
           }
         } else { // 没有投注(从一倍开始)
           dataArr.push({
