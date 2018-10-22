@@ -27,7 +27,8 @@ function hasSame(lotteryArr, way) {
     index2 = 3;
     index3 = 4;
   }
-  if (lotteryArr[index1] === lotteryArr[index2] || lotteryArr[index1] === lotteryArr[index3] || lotteryArr[index2] === lotteryArr[index3]) {
+  if ((lotteryArr[index1] === lotteryArr[index2] || lotteryArr[index1] === lotteryArr[index3] || lotteryArr[index2] === lotteryArr[index3]) 
+  && !(lotteryArr[index1] === lotteryArr[index2] && lotteryArr[index2] === lotteryArr[index3])) {
     return true;
   } else {
     return false;
@@ -36,33 +37,21 @@ function hasSame(lotteryArr, way) {
 
 var dataArr = [];
 
-allDataArr = [allDataArr[allDataArr.length - 1]];
+//allDataArr = [allDataArr[allDataArr.length - 1]];
 
 allDataArr.forEach(function(d){
   dataArr = dataArr.concat(d.data.original_data);
 });
 console.log('一共抓了' + dataArr.length + '条数据');
 // dataArr = [
+//   { lottery: [2,2,3,4,5] },
 //   { lottery: [1,2,3,4,5] },
-//   { lottery: [1,2,1,4,5] },
-//   { lottery: [3,2,3,4,3] },
 //   { lottery: [1,2,3,4,5] },
-//   { lottery: [3,2,3,4,5] },
-//   { lottery: [2,2,3,3,5] },
-//   { lottery: [4,2,3,4,2] },
-//   { lottery: [1,2,1,4,1] },
-//   { lottery: [1,2,2,4,5] },
-//   { lottery: [1,3,2,4,3] },
-//   { lottery: [1,2,2,4,5] },
-//   { lottery: [1,2,3,4,5] },
-//   { lottery: [1,5,2,2,3] },
-//   { lottery: [1,2,0,4,5] },
-//   { lottery: [1,2,9,4,5] },
-//   { lottery: [1,2,5,4,5] }
+//   { lottery: [2,2,2,4,3] }
 // ];
 
 // x 表示*超过*第几把没中
-for (var x = 8; x < 25; x++) {
+for (var x = 8; x < 35; x++) {
   console.log('-----' + x + '-----');
   (function(){
     var index1 = -1;

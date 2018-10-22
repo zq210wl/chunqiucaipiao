@@ -121,7 +121,7 @@ var betToggle = 0; // 投注开关，开：1，关：0
 var preBetNum = 0; // 上一次投注数量, 需要用户自己输入，0就是重新开始
 var stopAvailableMoney = 0; // 余额大于多少钱就停止所有的下注
 var followBetExceedNum = -1; // 连续超过多少期未中开始跟投(-1表示马上开始)
-var beiginBackTimes = 2556; // 跟到多少倍未中奖就开始返回(必须是表中的倍数)
+var beiginBackTimes = 159; // 跟到多少倍未中奖就开始返回(必须是表中的倍数)
 var backToTimes = 38; // 返回到多少倍(必须是表中的倍数)
 
 // 展示项
@@ -145,7 +145,7 @@ var nextIssueData = null;
 /*************** 请求相关 ***************/
 var token = '';
 var apiDomain = 'https://api.chunqiu1.com'; // 接口域名
-// apiDomain = ''; // TODO: 测试，删除
+apiDomain = ''; // TODO: 测试，删除
 
 // 自定义错误类型
 function CustomError(message) {
@@ -218,7 +218,8 @@ function hasSame(lotteryArr, way) {
     index2 = 3;
     index3 = 4;
   }
-  if (lotteryArr[index1] === lotteryArr[index2] || lotteryArr[index1] === lotteryArr[index3] || lotteryArr[index2] === lotteryArr[index3]) {
+  if ((lotteryArr[index1] === lotteryArr[index2] || lotteryArr[index1] === lotteryArr[index3] || lotteryArr[index2] === lotteryArr[index3]) 
+  && !(lotteryArr[index1] === lotteryArr[index2] && lotteryArr[index2] === lotteryArr[index3])) {
     return true;
   } else {
     return false;
@@ -607,7 +608,8 @@ function judgeIsBetting(key) {
 function processingData() {
   return new Promise(function(resolve, reject){
     var dataArr = [];
-    for (var key in notWinDetail) {
+    for (var i = 0; i < WAY_ID_ARR.length; i++) {
+      var key = WAY_ID_ARR[i];
       var curObj = notWinDetail[key];
       // 前中后是否连续超过规定的期数未中
       if (curObj.times > followBetExceedNum) { // 超过
@@ -689,11 +691,7 @@ function getDataAndBet() {
       wayTexts[curData.title] = 1;
     }
   }).then(requestTrends).then(requestNextIssue).then(processingData).then(function(processedData){
-    var reverseProcessedData = [];
-    for (var i = processedData.length - 1; i >= 0; i--) {
-      reverseProcessedData.push(processedData[i]);
-    }
-    return excuteBet(reverseProcessedData); // 返回一个promsie，这样 excuteBet 中发生异常就可以被下面的catch捕获
+    return excuteBet(processedData); // 返回一个promsie，这样 excuteBet 中发生异常就可以被下面的catch捕获
   }).catch(function(err){
     printError('投注异常:', err);
     // 所有的异常都统一在这里处理
