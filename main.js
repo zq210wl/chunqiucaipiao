@@ -127,9 +127,9 @@ var backToTimes = 38; // 返回到多少倍(必须是表中的倍数)
 // 展示项
 var curUserAvaliable = 0; // 当前用户的可用余额
 var notWinDetail = { // 前中后分别有连续查过多少期没中奖了
-  [QIAN_SAN_WAY_ID]: { times: -1 },
-  [ZHONG_SAN_WAY_ID]: { times: -1 },
-  [HOU_SAN_WAY_ID]: { times: -1 }
+  [QIAN_SAN_WAY_ID]: { num: -1 },
+  [ZHONG_SAN_WAY_ID]: { num: -1 },
+  [HOU_SAN_WAY_ID]: { num: -1 }
 };
 var curBetDetail = { // 当前前中后投注情况(跟投到多少倍了)
   issue: '', // 奖期
@@ -141,6 +141,13 @@ var curBetDetail = { // 当前前中后投注情况(跟投到多少倍了)
 // 存储数据用
 var preResultData = [];
 var nextIssueData = null;
+
+// 延期未开奖判断和处理相关，目前策略是如果延期未开奖就直接下一把从0开始跟
+// 开始投注的时间戳。判断方法：开始下注时设置值，拿到开奖结果后重置为0；
+var beginBetTime = 0; // 0表示没有投注(也就是为0的时候不存在等待延期开奖的情况)
+var delayIssues = JSON.parse(localStorage.getItem('chunqiu_delay_issues')) || []; // 延期的奖期
+var isFirstStart = true; // 是否为用户第一次手动设置pre触发的
+
 
 /*************** 请求相关 ***************/
 var token = '';
@@ -295,7 +302,18 @@ function requestPreResult() {
           for (var i = 0; i < preBetNum; i++) {
             var curData = dataArr[i];
             // status 为开奖状态，0: 未开奖，2: 未中奖, 3: 已中奖
-            if (curData.status === 0) { // 有未开奖
+            if (curData.status === ISSUE_STATUS.NOT_OPEN) { // 有未开奖
+              // 延迟开奖处理，直接返回结果
+              console.log('-=-=-=', !isFirstStart && beginBetTime > 0 && (new Date().getTime() - beginBetTime) > (75 * 1000));
+              console.log('isFirstStart:', isFirstStart);
+              console.log('isFirstStart:', beginBetTime);
+              console.log('cha:', (new Date().getTime() - beginBetTime));
+              if (!isFirstStart && beginBetTime > 0 && (new Date().getTime() - beginBetTime) > (75 * 1000)) {
+                preResultData = dataArr.slice(0, preBetNum);
+                resolve(preResultData); 
+                beginBetTime = 0;
+                return;
+              }
               if (i === 0) {
                 setSoftExcuteStatusDom('正在等待投注开奖结果');
               }
@@ -363,27 +381,27 @@ function requestTrends() {
         console.log('查询趋势结果[' + num + ']次');
         if (res && res.isSuccess && res.data) {
           var dataArr = res.data.original_data;
-          var qianTimes = -1;
-          var zhongTimes = -1;
-          var houTimes = -1;
+          var qianNum = -1;
+          var zhongNum = -1;
+          var houNum = -1;
           for (var i = 0; i < dataArr.length; i++) {
-            if (hasSame(dataArr[i].lottery, 1) && qianTimes === -1) {
-              qianTimes = i;
-              notWinDetail[QIAN_SAN_WAY_ID].times = i;
+            if (hasSame(dataArr[i].lottery, 1) && qianNum === -1) {
+              qianNum = i;
+              notWinDetail[QIAN_SAN_WAY_ID].num = i;
             }
-            if (hasSame(dataArr[i].lottery, 2) && zhongTimes === -1) {
-              zhongTimes = i;
-              notWinDetail[ZHONG_SAN_WAY_ID].times = i;
+            if (hasSame(dataArr[i].lottery, 2) && zhongNum === -1) {
+              zhongNum = i;
+              notWinDetail[ZHONG_SAN_WAY_ID].num = i;
             }
-            if (hasSame(dataArr[i].lottery, 3) && houTimes === -1) {
-              houTimes = i;
-              notWinDetail[HOU_SAN_WAY_ID].times = i;
+            if (hasSame(dataArr[i].lottery, 3) && houNum === -1) {
+              houNum = i;
+              notWinDetail[HOU_SAN_WAY_ID].num = i;
             }
           }
           // 更新连续多少期没中奖了的UI
-          setQianNotWinIssueNumDom(notWinDetail[QIAN_SAN_WAY_ID].times);
-          setZhongNotWinIssueNumDom(notWinDetail[ZHONG_SAN_WAY_ID].times);
-          setHouNotWinIssueNumDom(notWinDetail[HOU_SAN_WAY_ID].times);
+          setQianNotWinIssueNumDom(notWinDetail[QIAN_SAN_WAY_ID].num);
+          setZhongNotWinIssueNumDom(notWinDetail[ZHONG_SAN_WAY_ID].num);
+          setHouNotWinIssueNumDom(notWinDetail[HOU_SAN_WAY_ID].num);
           
           // 是否存在超过设置的未开奖期数
           if (judgeIsExceedNum()) {
@@ -467,7 +485,8 @@ function timesIsInbetList(times) {
 
 // 投注API
 function betAPI(index, dataArr, resolve, reject) {
-  if (dataArr.length === 0) { // 没有可以投注的(没有超过规定倍数的数据)
+  // -- 没有可以投注的(没有超过规定倍数的数据) --
+  if (dataArr.length === 0) {
     // 动态改变历史跟投数量
     preBetNum = dataArr.length;
     setPreNumInputDom(preBetNum);
@@ -484,6 +503,10 @@ function betAPI(index, dataArr, resolve, reject) {
       }
     }, 2000);
     return;
+  }
+  // -- 有可以投注的(有超过规定倍数的数据) --
+  if (index === 0) {
+    beginBetTime = new Date().getTime();
   }
   var data = dataArr[index];
   var encryptObj = CryptoJS.AES.encrypt(JSON.stringify(data.balls), CryptoJS.enc.Utf8.parse("C194V1RBJG8MJPEL"), {
@@ -514,6 +537,8 @@ function betAPI(index, dataArr, resolve, reject) {
 
         // 设置当前投注情况
         setCurBetDetail(dataArr);
+
+        isFirstStart = false;
 
         resolve();
 
@@ -585,7 +610,7 @@ function beginConfirm() {
 // 判断是否存在超过设置的未开奖期数
 function judgeIsExceedNum(key) {
   for (var key in notWinDetail) {
-    if (notWinDetail[key].times > followBetExceedNum) {
+    if (notWinDetail[key].num > followBetExceedNum) {
       return true;
     }
   }
@@ -612,7 +637,7 @@ function processingData() {
       var key = WAY_ID_ARR[i];
       var curObj = notWinDetail[key];
       // 前中后是否连续超过规定的期数未中
-      if (curObj.times > followBetExceedNum) { // 超过
+      if (curObj.num > followBetExceedNum) { // 超过
         var resData = judgeIsBetting(key);
         if (resData && Number(resData.status) === Number(ISSUE_STATUS.NOT_WIN)) { // 正在投注
           var times = getNextTimesData(resData.multiple);
@@ -628,13 +653,25 @@ function processingData() {
               multiple: times
             });
           }
-        } else { // 没有投注(从一倍开始)
+        } else { // 没有投注、已经中奖、延时未开奖(从一倍开始)
           dataArr.push({
             issue: nextIssueData.cur_issue,
             wayId: key,
             lotteryId: LOTTERY_ID,
             multiple: 1
           });
+        }
+      }
+      // 延时未开奖处理
+      if (resData && Number(resData.status) === Number(ISSUE_STATUS.NOT_OPEN)) {
+        if (delayIssues.indexOf(resData.issue) === -1) {
+          delayIssues.push(resData.issue);
+          setSoftExcuteWrongDom('新出现延期未开奖:' + resData.issue); // UI显示错误信息
+          playAlarm(); // 开启警报
+          setTimeout(function(){
+            pauseAlarm();
+          }, 30000);
+          localStorage.setItem('chunqiu_delay_issues', JSON.stringify(delayIssues));
         }
       }
     }
@@ -768,7 +805,7 @@ function createDoms() {
     </fieldset>
     <fieldset style="border:1px yellow solid;padding:10px;color:#fff;font-size:12px;margin-top:5px;">
       <legend>选项区域</legend>
-      上一次投注数量：<br/> <input id="preNumInputDom" value='0' style="color:#000;margin-bottom:5px;" />(0表示重新开始投注) <br/>
+      上一次投注数量(等上一次结果出来再跟投，不然没法判断延期)：<br/> <input id="preNumInputDom" value='0' style="color:#000;margin-bottom:5px;" />(0表示重新开始投注) <br/>
       余额大于多少钱就停止所有的下注：<br/> <input id="stopAvailableInputDom" value='0' style="color:#000;margin-bottom:5px;" /> <br/>
       连续超过多少期未中开始跟投：<br/> <input id="followBetExceedNumInputDom" value='-1' style="color:#000;margin-bottom:5px;" />(-1表示马上开始)<br/>
       跟到多少倍未中奖就开始返回：<br/> <input id="beiginBackTimesInputDom" value='0' style="color:#000;margin-bottom:5px;" />(必须是表中的倍数,最大支持跟到:3827倍)<br/>
@@ -847,6 +884,7 @@ function createDoms() {
 
 // 初始化页面中的动态数据
 function initPageData() {
+  isFirstStart = true;
   // 选项区域
   setPreNumInputDom(preBetNum);
   setStopAvailableInputDom(stopAvailableMoney);
@@ -870,6 +908,9 @@ function stopBet() {
 function processError(message) {
   setSoftExcuteWrongDom(message); // UI显示错误信息
   playAlarm(); // 开启警报
+  setTimeout(function(){
+    pauseAlarm();
+  }, 20*60*1000);
   stopBet(); // 停止投注
 }
 
