@@ -1,0 +1,22 @@
+{
+  "name": "chunqiucaipiao",
+  "version": "1.0.0",
+  "description": "- 检查indexDB版本是否发生变化   - 检查接口的域名是否发生变化   - 检查一注的价钱是否发生变化   - 检查电脑的时间，一定要跟网络同步",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zq210wl/chunqiucaipiao.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zq210wl/chunqiucaipiao/issues"
+  },
+  "homepage": "https://github.com/zq210wl/chunqiucaipiao#readme",
+  "devDependencies": {
+    "request": "^2.88.0"
+  }
+}
