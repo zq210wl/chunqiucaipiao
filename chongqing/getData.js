@@ -27,5 +27,7 @@ request({
 }, function(error, response, body){
   if (!error && response.statusCode == 200) {
     console.log('抓取数据成功');
+  } else {
+    console.log(error);
   }
 }).pipe(fs.createWriteStream('./chongqing/data/' + getFileName() + '.json'));

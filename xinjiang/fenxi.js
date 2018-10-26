@@ -27,21 +27,26 @@ function hasSame(lotteryArr, way) {
 
 var dataArr = [];
 var dirsFiles = fs.readdirSync('./xinjiang/data');
-var LastNum = process.argv[2];
-var hackDayNum = 4;
-if (LastNum) {
-  dirsFiles = dirsFiles.slice(dirsFiles.length - LastNum);
-  hackDayNum = 0;
+if (dirsFiles.indexOf('.DS_Store') !== -1) {
+  dirsFiles = dirsFiles.slice(1);
 }
+// 参数说明：如果不带参数就统计所有的数据
+var arg1 = process.argv[2]; // 从倒数第几条开始看
+var arg2 = process.argv[3]; // 一共看几条
+var lastFromNum = arg1 ? (arg1 - 1) : 0;
+var acountNum = arg1 && arg2 ? arg2 : dirsFiles.length;
+var idx1 = dirsFiles.length - lastFromNum - acountNum;
+var idx2 = dirsFiles.length - lastFromNum;
+dirsFiles = dirsFiles.slice(idx1, idx2);
 
 dirsFiles.forEach(function(fileName){
-  dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./tencent/data/' + fileName, 'utf8')).data.original_data);
+  dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./xinjiang/data/' + fileName, 'utf8')).data.original_data);
 });
 
-console.log('一共处理了' + (dirsFiles.length + hackDayNum) + '天' + dataArr.length + '条数据');
+console.log('一共处理了' + dirsFiles.length + '天' + dataArr.length + '条数据');
 
 // x 表示*超过*第几把没中
-for (var x = 8; x < 35; x++) {
+for (var x = 0; x < 30; x++) {
   console.log('-----' + x + '-----');
   (function(){
     var index1 = -1;
