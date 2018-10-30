@@ -26,7 +26,7 @@ function hasSame(lotteryArr, way) {
 }
 
 var dataArr = [];
-var dirsFiles = fs.readdirSync('./chongqing/data');
+var dirsFiles = fs.readdirSync('./tencent/data');
 if (dirsFiles.indexOf('.DS_Store') !== -1) {
   dirsFiles = dirsFiles.slice(1);
 }
@@ -38,16 +38,19 @@ var acountNum = arg1 && arg2 ? arg2 : dirsFiles.length;
 var idx1 = dirsFiles.length - lastFromNum - acountNum;
 var idx2 = dirsFiles.length - lastFromNum;
 dirsFiles = dirsFiles.slice(idx1, idx2);
+console.log(dirsFiles);
 
 dirsFiles.forEach(function(fileName){
-  dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./chongqing/data/' + fileName, 'utf8')).data.original_data);
+  dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./tencent/data/' + fileName, 'utf8')).data.original_data);
 });
 
-console.log('一共处理了' + dirsFiles.length + '天' + dataArr.length + '条数据');
+var hackDayNum = arg1 ? 0 : 4;
 
-// x 表示*超过*第几把没中
-for (var x = 0; x < 30; x++) {
-  console.log('-----' + x + '-----');
+console.log('一共处理了' + (dirsFiles.length + hackDayNum) + '天' + dataArr.length + '条数据');
+
+// x 表示第几把中的
+for (var x = 1; x < 40; x++) {
+  console.log('----- 第' + x + '把中奖的数据 -----');
   (function(){
     var index1 = -1;
     var index2 = -1;
@@ -60,7 +63,7 @@ for (var x = 0; x < 30; x++) {
         } else {
           index2 = i;
         }
-        if (index1 !== -1 && index2 !== -1 && (index2 - index1) > x) {
+        if (index1 !== -1 && index2 !== -1 && (index2 - index1) === x) {
           qiansanAcount++;
         }
         index1 = index2;
@@ -81,7 +84,7 @@ for (var x = 0; x < 30; x++) {
         } else {
           index2 = i;
         }
-        if (index1 !== -1 && index2 !== -1 && (index2 - index1) > x) {
+        if (index1 !== -1 && index2 !== -1 && (index2 - index1) === x) {
           qiansanAcount++;
         }
         index1 = index2;
@@ -102,7 +105,7 @@ for (var x = 0; x < 30; x++) {
         } else {
           index2 = i;
         }
-        if (index1 !== -1 && index2 !== -1 && (index2 - index1) > x) {
+        if (index1 !== -1 && index2 !== -1 && (index2 - index1) === x) {
           qiansanAcount++;
         }
         index1 = index2;

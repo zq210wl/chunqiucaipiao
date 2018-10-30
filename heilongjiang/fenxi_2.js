@@ -26,7 +26,7 @@ function hasSame(lotteryArr, way) {
 }
 
 var dataArr = [];
-var dirsFiles = fs.readdirSync('./chongqing/data');
+var dirsFiles = fs.readdirSync('./heilongjiang/data');
 if (dirsFiles.indexOf('.DS_Store') !== -1) {
   dirsFiles = dirsFiles.slice(1);
 }
@@ -40,74 +40,110 @@ var idx2 = dirsFiles.length - lastFromNum;
 dirsFiles = dirsFiles.slice(idx1, idx2);
 
 dirsFiles.forEach(function(fileName){
-  dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./chongqing/data/' + fileName, 'utf8')).data.original_data);
+  dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./heilongjiang/data/' + fileName, 'utf8')).data.original_data);
 });
 
 console.log('一共处理了' + dirsFiles.length + '天' + dataArr.length + '条数据');
 
-// x 表示*超过*第几把没中
-for (var x = 0; x < 30; x++) {
-  console.log('-----' + x + '-----');
+var preQianIndex = -1;
+var preZhongIndex = -1;
+var preHouIndex = -1;
+var lastQianIndex = -1;
+var lastZhongIndex = -1;
+var lastHouIndex = -1;
+// x 表示第几把中的
+for (var x = 1; x < 40; x++) {
+  console.log('----- 第' + x + '把中奖的数据 -----');
   (function(){
     var index1 = -1;
     var index2 = -1;
-    var qiansanAcount = 0;
+    var acount = 0;
+    var indexArr = [];
+    var exceedAcount = 0;
     for (var i = 0; i < dataArr.length; i++) {
       if (hasSame(dataArr[i].lottery, 1)) { 
         if (index1 === -1) {
           index1 = i;
+          preQianIndex = i;
           continue;
-        } else {
-          index2 = i;
         }
-        if (index1 !== -1 && index2 !== -1 && (index2 - index1) > x) {
-          qiansanAcount++;
+        index2 = i;
+        lastQianIndex = i;
+        if ((index2 - index1) === x) {
+          acount++;
+          indexArr.push(`${index1+1},${i+1}`);
+        }
+        if ((index2 - index1) > x) {
+          exceedAcount++;
         }
         index1 = index2;
       }
     }
-    console.log('前:', qiansanAcount);
+    console.log('前:', acount, exceedAcount, indexArr);
   })();
 
   (function(){
     var index1 = -1;
     var index2 = -1;
-    var qiansanAcount = 0;
+    var acount = 0;
+    var indexArr = [];
+    var exceedAcount = 0;
     for (var i = 0; i < dataArr.length; i++) {
       if (hasSame(dataArr[i].lottery, 2)) { 
         if (index1 === -1) {
           index1 = i;
+          preZhongIndex = i;
           continue;
-        } else {
-          index2 = i;
         }
-        if (index1 !== -1 && index2 !== -1 && (index2 - index1) > x) {
-          qiansanAcount++;
+        index2 = i;
+        lastZhongIndex = i;
+        if ((index2 - index1) === x) {
+          acount++;
+          indexArr.push(`${index1+1},${i+1}`);
+        }
+        if ((index2 - index1) > x) {
+          exceedAcount++;
         }
         index1 = index2;
       }
     }
-    console.log('中:', qiansanAcount);
+    console.log('中:', acount, exceedAcount, indexArr);
   })();
 
   (function(){
     var index1 = -1;
     var index2 = -1;
-    var qiansanAcount = 0;
+    var acount = 0;
+    var indexArr = [];
+    var exceedAcount = 0;
     for (var i = 0; i < dataArr.length; i++) {
       if (hasSame(dataArr[i].lottery, 3)) { 
         if (index1 === -1) {
           index1 = i;
+          preHouIndex = i;
           continue;
-        } else {
-          index2 = i;
         }
-        if (index1 !== -1 && index2 !== -1 && (index2 - index1) > x) {
-          qiansanAcount++;
+        index2 = i;
+        lastHouIndex = i;
+        if ((index2 - index1) === x) {
+          acount++;
+          indexArr.push(`${index1+1},${i+1}`);
+        }
+        if ((index2 - index1) > x) {
+          exceedAcount++;
         }
         index1 = index2;
       }
     }
-    console.log('后:', qiansanAcount);
+    console.log('后:', acount, exceedAcount, indexArr);
   })();
 }
+
+console.log('前三最[前]面未中的个数:', preQianIndex);
+console.log('前三最[后]面未中的个数:', dataArr.length - lastQianIndex - 1);
+
+console.log('中三最[前]面未中的个数:', preZhongIndex);
+console.log('中三最[后]面未中的个数:', dataArr.length - lastZhongIndex - 1);
+
+console.log('后三最[前]面未中的个数:', preHouIndex);
+console.log('后三最[后]面未中的个数:', dataArr.length - lastHouIndex - 1);

@@ -1,4 +1,4 @@
-// 早上9:00到晚上2:00
+// 早上10:00到晚上9:00
 
 var request = require('request');
 var fs = require('fs');
@@ -21,7 +21,7 @@ request({
   },
   body: {
     lottery_id: 1,
-    count: "102"
+    count: "66"
   },
   json: true
 }, function(error, response, body){
