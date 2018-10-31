@@ -42,6 +42,7 @@ dirsFiles = dirsFiles.slice(idx1, idx2);
 dirsFiles.forEach(function(fileName){
   dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./chongqing/data/' + fileName, 'utf8')).data.original_data);
 });
+dataArr.reverse();
 
 console.log('一共处理了' + dirsFiles.length + '天' + dataArr.length + '条数据');
 
