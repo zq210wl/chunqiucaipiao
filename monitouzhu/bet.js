@@ -5,10 +5,6 @@ var BET_LIST = common.BET_LIST;
 var getNextDataByMultiple = common.getNextDataByMultiple;
 var hasSame = common.hasSame;
 
-// 1、上一把结果出来后的余额
-// 2、上一把中奖情况（决定下一把怎么投）
-// 3、当前投注开奖后，每一个投注的[中奖情况、成本、奖金、盈亏额]，以及当前投注开奖后的总的余额
-
 var beginBackData = BET_LIST[12]; // 开始返回的数据
 var backToData = BET_LIST[0]; // 返回哪一个数据
 var backDetail = [ //  返回详情
@@ -124,10 +120,10 @@ for (var i = 0; i < dataLen; i++) {
       var prePos = preCity[key2]; // 上一把对应的当前城市中的某一个位置(前中后)对象
       var curNextBet = null; // 当前将要投注的数据
       if (!prePos.win && prePos.multiple === beginBackData.multiple) { // 需要返回
-        curNextBet = BET_LIST[0];
+        curNextBet = backToData;
         backDetail.push({ index: i + 1, city: CITY_ENGLISH_TO_CHINESE[key1], pos: POS_ENGLISH_TO_CHINESE[key2] });
       } else if (prePos.multiple === 0 || prePos.win){ // 第一把或上一把中奖了
-        curNextBet = BET_LIST[0];
+        curNextBet = backToData;
       } else { // 上一把没中奖
         curNextBet = getNextDataByMultiple(prePos.multiple);
       }
@@ -169,3 +165,6 @@ function printData() {
   console.log(printStr);
 }
 
+
+
+// 目前发现的规律：盈利大于450就停止，第13把也就是109倍的时候不中就返回。

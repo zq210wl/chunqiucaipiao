@@ -12,9 +12,9 @@ var BET_LIST = [
   { multiple: 54, money: 97.2, index: 11 },
   { multiple: 76, money: 136.8, index: 12 },
   { multiple: 109, money: 196.2, index: 13 },
-  // { multiple: 159, money: 286.2, index: 14 },
-  // { multiple: 234, money: 421.2, index: 15 },
-  // { multiple: 346, money: 622.8, index: 16 }
+  { multiple: 159, money: 286.2, index: 14 },
+  { multiple: 234, money: 421.2, index: 15 },
+  { multiple: 346, money: 622.8, index: 16 }
 ];
 
 module.exports = {
