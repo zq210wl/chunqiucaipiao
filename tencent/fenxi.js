@@ -49,68 +49,65 @@ var hackDayNum = arg1 ? 0 : 4;
 console.log('一共处理了' + (dirsFiles.length + hackDayNum) + '天' + dataArr.length + '条数据');
 
 // x 表示*超过*第几把没中
-for (var x = 8; x < 35; x++) {
+for (var x = 8; x < 40; x++) {
   console.log('-----' + x + '-----');
   (function(){
     var index1 = -1;
     var index2 = -1;
-    var qiansanAcount = 0;
+    var acount = 0;
     for (var i = 0; i < dataArr.length; i++) {
       if (hasSame(dataArr[i].lottery, 1)) { 
         if (index1 === -1) {
           index1 = i;
           continue;
-        } else {
-          index2 = i;
         }
-        if (index1 !== -1 && index2 !== -1 && (index2 - index1) > (x + 1)) {
-          qiansanAcount++;
+        index2 = i;
+        if ((index2 - index1) > x) {
+          acount++;
         }
         index1 = index2;
       }
     }
-    console.log('前:', qiansanAcount);
+    console.log('前:', acount);
   })();
 
   (function(){
     var index1 = -1;
     var index2 = -1;
-    var qiansanAcount = 0;
+    var acount = 0;
     for (var i = 0; i < dataArr.length; i++) {
       if (hasSame(dataArr[i].lottery, 2)) { 
         if (index1 === -1) {
           index1 = i;
           continue;
-        } else {
-          index2 = i;
         }
-        if (index1 !== -1 && index2 !== -1 && (index2 - index1) > (x + 1)) {
-          qiansanAcount++;
+        index2 = i;
+        if ((index2 - index1) > x) {
+          acount++;
         }
         index1 = index2;
       }
     }
-    console.log('中:', qiansanAcount);
+    console.log('中:', acount);
   })();
 
   (function(){
     var index1 = -1;
     var index2 = -1;
-    var qiansanAcount = 0;
+    var acount = 0;
     for (var i = 0; i < dataArr.length; i++) {
       if (hasSame(dataArr[i].lottery, 3)) { 
         if (index1 === -1) {
           index1 = i;
           continue;
-        } else {
-          index2 = i;
         }
-        if (index1 !== -1 && index2 !== -1 && (index2 - index1) > (x + 1)) {
-          qiansanAcount++;
+        index2 = i;
+        if ((index2 - index1) > x) {
+          acount++;
         }
         index1 = index2;
       }
     }
-    console.log('后:', qiansanAcount);
+    console.log('后:', acount);
   })();
 }

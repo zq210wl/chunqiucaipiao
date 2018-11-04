@@ -2,10 +2,10 @@
 var fs = require('fs');
 var common = require('./common.js');
 var BET_LIST = common.BET_LIST;
-var getNextDataByMultiple = common.getNextDataByMultiple;
+var getNextDataByMultipleIndex = common.getNextDataByMultipleIndex;
 var hasSame = common.hasSame;
 
-var beginBackData = BET_LIST[12]; // 开始返回的数据
+var beginBackData = BET_LIST[16]; // 开始返回的数据
 var backToData = BET_LIST[0]; // 返回哪一个数据
 var backDetail = [ //  返回详情
   // { index, city, pos } 第几把
@@ -20,7 +20,8 @@ var defaultCity = {
   cost: 0, // 当前这一把的花费成本
   reward: 0, // 当前这一把中奖后的奖金
   profit: 0, // 当前这一把的盈亏额
-  multiple: 0 // 当前跟到第几倍了
+  multiple: 0, // 当前跟到第几倍了
+  multipleIndex: 0 // 倍数跟到第几把了
 };
 var preBets = { // 上一把投注
   chongqing: {
@@ -125,13 +126,14 @@ for (var i = 0; i < dataLen; i++) {
       } else if (prePos.multiple === 0 || prePos.win){ // 第一把或上一把中奖了
         curNextBet = backToData;
       } else { // 上一把没中奖
-        curNextBet = getNextDataByMultiple(prePos.multiple);
+        curNextBet = getNextDataByMultipleIndex(prePos.multipleIndex);
       }
       curPos.win = hasSame(curData.lottery, key2);
       curPos.cost = curNextBet.money;
       curPos.reward = curPos.win ? Number((curPos.cost * 3.62).toFixed(2)) : 0;
       curPos.profit = Number((curPos.reward - curPos.cost).toFixed(2));
       curPos.multiple = curNextBet.multiple;
+      curPos.multipleIndex = curNextBet.index;
       // all
       allBets.index = i + 1;
       allBets.curProfit = Number((allBets.curProfit + curPos.profit).toFixed(2));
