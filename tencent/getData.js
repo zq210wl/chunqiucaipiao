@@ -28,4 +28,4 @@ request({
   } else {
     console.log(error);
   }
-}).pipe(fs.createWriteStream('./tencent/data/' + getFileName() + '.json'));
+}).pipe(fs.createWriteStream('./tencent/originData/' + getFileName() + '.json'));

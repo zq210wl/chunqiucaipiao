@@ -1,3 +1,20 @@
+/*
+格式：
+
+--------------- 1 ---------------
+
+{一}前到第[1]把未中的数量: 272
+{一}中到第[1]把未中的数量: 285
+{一}后到第[1]把未中的数量: 290
+
+{二}前中同时到第[1]把未中的数量: 30
+{二}前后同时到第[1]把未中的数量: 9
+{二}中后同时到第[1]把未中的数量: 26
+
+{三}前中后同时到第[1]把未中的数量: 0
+
+*/
+
 var fs = require('fs');
 
 function hasSame(lotteryArr, way) {
@@ -26,7 +43,7 @@ function hasSame(lotteryArr, way) {
 }
 
 var dataArr = [];
-var dirsFiles = fs.readdirSync('./tencent/data');
+var dirsFiles = fs.readdirSync('./tencent/originData');
 if (dirsFiles.indexOf('.DS_Store') !== -1) {
   dirsFiles = dirsFiles.slice(1);
 }
@@ -41,7 +58,7 @@ dirsFiles = dirsFiles.slice(idx1, idx2);
 console.log(dirsFiles);
 
 dirsFiles.forEach(function(fileName){
-  dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./tencent/data/' + fileName, 'utf8')).data.original_data);
+  dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./tencent/originData/' + fileName, 'utf8')).data.original_data);
 });
 
 var hackDayNum = arg1 ? 0 : 4;
@@ -65,7 +82,9 @@ console.log('一共处理了' + (dirsFiles.length + hackDayNum) + '天' + dataAr
 
 // x 表示第几把未中
 for (var x = 1; x < 40; x++) {
-  console.log('-----' + x + '-----');
+  console.log('--------------- ' + x + ' ---------------');
+
+  console.log(' ');
 
   (function(){
     var index1 = -1;
@@ -84,7 +103,7 @@ for (var x = 1; x < 40; x++) {
         index1 = index2;
       }
     }
-    console.log('{一}前在第[' + x + ']把未中的数量:', acount);
+    console.log('{一}前到第[' + x + ']把未中的数量:', acount);
   })();
 
   (function(){
@@ -104,7 +123,7 @@ for (var x = 1; x < 40; x++) {
         index1 = index2;
       }
     }
-    console.log('{一}中在第[' + x + ']把未中的数量:', acount);
+    console.log('{一}中到第[' + x + ']把未中的数量:', acount);
   })();
 
   (function(){
@@ -124,8 +143,10 @@ for (var x = 1; x < 40; x++) {
         index1 = index2;
       }
     }
-    console.log('{一}后在第[' + x + ']把未中的数量:', acount);
+    console.log('{一}后到第[' + x + ']把未中的数量:', acount);
   })();
+
+  console.log(' ');
 
   (function(){
     var index1 = -1;
@@ -165,7 +186,7 @@ for (var x = 1; x < 40; x++) {
         acount++;
       }
     }
-    console.log('{二}前中同时在第[' + x + ']把未中的数量:', acount);
+    console.log('{二}前中同时到第[' + x + ']把未中的数量:', acount);
   })();
 
   (function(){
@@ -206,7 +227,7 @@ for (var x = 1; x < 40; x++) {
         acount++;
       }
     }
-    console.log('{二}前后同时在第[' + x + ']把未中的数量:', acount);
+    console.log('{二}前后同时到第[' + x + ']把未中的数量:', acount);
   })();
 
   (function(){
@@ -247,8 +268,10 @@ for (var x = 1; x < 40; x++) {
         acount++;
       }
     }
-    console.log('{二}中后同时在第[' + x + ']把未中的数量:', acount);
+    console.log('{二}中后同时到第[' + x + ']把未中的数量:', acount);
   })();
+
+  console.log(' ');
 
   (function(){
     var index1 = -1;
@@ -288,6 +311,8 @@ for (var x = 1; x < 40; x++) {
         acount++;
       }
     }
-    console.log('{三}前中后同时在第[' + x + ']把未中的数量:', acount);
+    console.log('{三}前中后同时到第[' + x + ']把未中的数量:', acount);
   })();
+
+  console.log(' ');
 }

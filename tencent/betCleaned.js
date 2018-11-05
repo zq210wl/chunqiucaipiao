@@ -81,8 +81,8 @@ DIRS.forEach(function(dir){
 });
 
 // 如果文件已经存在就先删除
-if (fs.existsSync(`./tencent/moniresult/${exportFilename}.txt`)) {
-  fs.unlinkSync(`./tencent/moniresult/${exportFilename}.txt`);
+if (fs.existsSync(`./tencent/cleanedResult/${exportFilename}.txt`)) {
+  fs.unlinkSync(`./tencent/cleanedResult/${exportFilename}.txt`);
 }
 
 var dataLen = allDatas.tencent.length;
@@ -138,7 +138,7 @@ function printData() {
       printStr += `${cityName + posName}: 中奖状态[ ${Number(posData.win)} ], 倍数[ ${posData.multiple} ], 成本[ ${posData.cost} ], 奖金[ ${posData.reward} ], 盈亏额[ ${posData.profit} ];\n`;
     }
   }
-  fs.appendFile(`./tencent/moniresult/${exportFilename}.txt`, printStr, function () {
+  fs.appendFile(`./tencent/cleanedResult/${exportFilename}.txt`, printStr, function () {
     console.log(`追加完成${++exportCount}`);
   });
 }

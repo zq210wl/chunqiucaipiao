@@ -1,3 +1,13 @@
+/*
+格式：
+
+----- 第1把中奖的数据 -----
+前: 16
+中: 16
+后: 7
+
+*/
+
 var fs = require('fs');
 
 function hasSame(lotteryArr, way) {
@@ -26,7 +36,7 @@ function hasSame(lotteryArr, way) {
 }
 
 var dataArr = [];
-var dirsFiles = fs.readdirSync('./tencent/data');
+var dirsFiles = fs.readdirSync('./tencent/originData');
 if (dirsFiles.indexOf('.DS_Store') !== -1) {
   dirsFiles = dirsFiles.slice(1);
 }
@@ -41,7 +51,7 @@ dirsFiles = dirsFiles.slice(idx1, idx2);
 console.log(dirsFiles);
 
 dirsFiles.forEach(function(fileName){
-  dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./tencent/data/' + fileName, 'utf8')).data.original_data);
+  dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./tencent/originData/' + fileName, 'utf8')).data.original_data);
 });
 
 var hackDayNum = arg1 ? 0 : 4;
