@@ -5,7 +5,7 @@ var BET_LIST = common.BET_LIST;
 var getNextDataByMultipleIndex = common.getNextDataByMultipleIndex;
 var hasSame = common.hasSame;
 
-var beginBackData = BET_LIST[14]; // 开始返回的数据
+var beginBackData = BET_LIST[19]; // 开始返回的数据
 var backToData = BET_LIST[0]; // 返回哪一个数据
 var backDetail = [ //  返回详情
   // { index, city, pos } 第几把
@@ -83,7 +83,7 @@ if (fs.existsSync(`./tencent/cleanedResult/${exportFilename}.txt`)) {
 }
 
 var dataLen = allDatas.tencent.length;
-var notWinBackNum = 18; // 在第几把未中奖就开始从下一把跟投
+var notWinBackNum = 17; // 在第几把未中奖就开始从下一把跟投
 var preEndIdx = notWinBackNum - 1; // 上一次结束跟投的下标
 var nextStartIdx = 0; // 下次开始跟投的下标
 var profitFlags = [
@@ -92,9 +92,9 @@ var profitFlags = [
   //   done: false
   // }
 ];
-for (var i = 0; i < 1; i++) {
+for (var i = 0; i < 4; i++) {
   profitFlags.push({
-    money: 400,
+    money: 90,
     done: false
   });
 }

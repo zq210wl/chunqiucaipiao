@@ -23,24 +23,47 @@
 //   { multiple: 3827, money: 6888.6, index: 22 }
 // ];
 
+// var BET_LIST = [
+//   { multiple: 1, money: 1.8, index: 1 },
+//   { multiple: 1, money: 1.8, index: 2 },
+//   { multiple: 2, money: 3.6, index: 3 },
+//   { multiple: 3, money: 5.4, index: 4 },
+//   { multiple: 5, money: 9.0, index: 5 },
+//   { multiple: 7, money: 12.6, index: 6 },
+//   { multiple: 10, money: 18.0, index: 7 },
+//   { multiple: 14, money: 25.2, index: 8 },
+//   { multiple: 20, money: 36.0, index: 9 },
+//   { multiple: 27, money: 48.6, index: 10 },
+//   { multiple: 38, money: 68.4, index: 11 },
+//   { multiple: 53, money: 95.4, index: 12 },
+//   { multiple: 73, money: 131.4, index: 13 },
+//   { multiple: 102, money: 183.6, index: 14 },
+//   { multiple: 142, money: 255.6, index: 15 },
+//   { multiple: 195, money: 351.0, index: 16 },
+//   { multiple: 270, money: 486.0, index: 17 }
+// ];
+
 var BET_LIST = [
-  { multiple: 1, money: 1.8, index: 1 },
-  { multiple: 1, money: 1.8, index: 2 },
-  { multiple: 2, money: 3.6, index: 3 },
-  { multiple: 3, money: 5.4, index: 4 },
-  { multiple: 5, money: 9.0, index: 5 },
-  { multiple: 7, money: 12.6, index: 6 },
-  { multiple: 10, money: 18.0, index: 7 },
-  { multiple: 14, money: 25.2, index: 8 },
-  { multiple: 20, money: 36.0, index: 9 },
-  { multiple: 27, money: 48.6, index: 10 },
-  { multiple: 38, money: 68.4, index: 11 },
-  { multiple: 53, money: 95.4, index: 12 },
-  { multiple: 73, money: 131.4, index: 13 },
-  { multiple: 102, money: 183.6, index: 14 },
-  { multiple: 142, money: 255.6, index: 15 },
-  { multiple: 195, money: 351.0, index: 16 },
-  { multiple: 270, money: 486.0, index: 17 }
+  { index: 1, multiple: 1, money: 1.8 },      // 每一把收益: 4.73
+  { index: 2, multiple: 1, money: 1.8 },      // 每一把收益: 1.46
+  { index: 3, multiple: 2, money: 3.6 },      // 每一把收益: 1.95
+  { index: 4, multiple: 2, money: 3.6 },      // 每一把收益: 0.56
+  { index: 5, multiple: 3, money: 5.4 },      // 每一把收益: 0.68
+  { index: 6, multiple: 4, money: 7.2 },      // 每一把收益: 0.45
+  { index: 7, multiple: 6, money: 10.8 },     // 每一把收益: 0.71
+  { index: 8, multiple: 8, money: 14.4 },     // 每一把收益: 0.45
+  { index: 9, multiple: 12, money: 21.6 },    // 每一把收益: 0.90
+  { index: 10, multiple: 16, money: 28.8 },   // 每一把收益: 0.55
+  { index: 11, multiple: 22, money: 39.6 },   // 每一把收益: 0.46
+  { index: 12, multiple: 31, money: 55.8 },   // 每一把收益: 0.67
+  { index: 13, multiple: 43, money: 77.4 },   // 每一把收益: 0.69
+  { index: 14, multiple: 59, money: 106.2 },   // 每一把收益: 0.51
+  { index: 15, multiple: 82, money: 147.6 },   // 每一把收益: 0.65
+  { index: 16, multiple: 114, money: 205.2 },   // 每一把收益: 0.84
+  { index: 17, multiple: 157, money: 282.6 },   // 每一把收益: 0.68
+  { index: 18, multiple: 218, money: 392.4 },   // 每一把收益: 0.97
+  { index: 19, multiple: 300, money: 540.0 },   // 每一把收益: 0.67
+  { index: 20, multiple: 414, money: 745.2 }   // 每一把收益: 0.59
 ];
 
 module.exports = {
