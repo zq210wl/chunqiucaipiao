@@ -43,27 +43,51 @@
 //   { multiple: 270, money: 486.0, index: 17 }
 // ];
 
+// var BET_LIST = [
+//   { index: 1, multiple: 1, money: 1.8 },      // 每一把收益: 4.73
+//   { index: 2, multiple: 1, money: 1.8 },      // 每一把收益: 1.46
+//   { index: 3, multiple: 2, money: 3.6 },      // 每一把收益: 1.95
+//   { index: 4, multiple: 2, money: 3.6 },      // 每一把收益: 0.56
+//   { index: 5, multiple: 3, money: 5.4 },      // 每一把收益: 0.68
+//   { index: 6, multiple: 4, money: 7.2 },      // 每一把收益: 0.45
+//   { index: 7, multiple: 6, money: 10.8 },     // 每一把收益: 0.71
+//   { index: 8, multiple: 8, money: 14.4 },     // 每一把收益: 0.45
+//   { index: 9, multiple: 12, money: 21.6 },    // 每一把收益: 0.90
+//   { index: 10, multiple: 16, money: 28.8 },   // 每一把收益: 0.55
+//   { index: 11, multiple: 22, money: 39.6 },   // 每一把收益: 0.46
+//   { index: 12, multiple: 31, money: 55.8 },   // 每一把收益: 0.67
+//   { index: 13, multiple: 43, money: 77.4 },   // 每一把收益: 0.69
+//   { index: 14, multiple: 59, money: 106.2 },   // 每一把收益: 0.51
+//   { index: 15, multiple: 82, money: 147.6 },   // 每一把收益: 0.65
+//   { index: 16, multiple: 114, money: 205.2 },   // 每一把收益: 0.84
+//   { index: 17, multiple: 157, money: 282.6 },   // 每一把收益: 0.68
+//   { index: 18, multiple: 218, money: 392.4 },   // 每一把收益: 0.97
+//   { index: 19, multiple: 300, money: 540.0 },   // 每一把收益: 0.67
+//   { index: 20, multiple: 414, money: 745.2 }   // 每一把收益: 0.59
+// ];
+
+// 如果到第20把还不中，那就开始止损，回归到第10把重新开始，总共覆盖30把
 var BET_LIST = [
   { index: 1, multiple: 1, money: 1.8 },      // 每一把收益: 4.73
   { index: 2, multiple: 1, money: 1.8 },      // 每一把收益: 1.46
-  { index: 3, multiple: 2, money: 3.6 },      // 每一把收益: 1.95
-  { index: 4, multiple: 2, money: 3.6 },      // 每一把收益: 0.56
-  { index: 5, multiple: 3, money: 5.4 },      // 每一把收益: 0.68
-  { index: 6, multiple: 4, money: 7.2 },      // 每一把收益: 0.45
-  { index: 7, multiple: 6, money: 10.8 },     // 每一把收益: 0.71
-  { index: 8, multiple: 8, money: 14.4 },     // 每一把收益: 0.45
-  { index: 9, multiple: 12, money: 21.6 },    // 每一把收益: 0.90
-  { index: 10, multiple: 16, money: 28.8 },   // 每一把收益: 0.55
-  { index: 11, multiple: 22, money: 39.6 },   // 每一把收益: 0.46
-  { index: 12, multiple: 31, money: 55.8 },   // 每一把收益: 0.67
-  { index: 13, multiple: 43, money: 77.4 },   // 每一把收益: 0.69
-  { index: 14, multiple: 59, money: 106.2 },   // 每一把收益: 0.51
-  { index: 15, multiple: 82, money: 147.6 },   // 每一把收益: 0.65
-  { index: 16, multiple: 114, money: 205.2 },   // 每一把收益: 0.84
-  { index: 17, multiple: 157, money: 282.6 },   // 每一把收益: 0.68
-  { index: 18, multiple: 218, money: 392.4 },   // 每一把收益: 0.97
-  { index: 19, multiple: 300, money: 540.0 },   // 每一把收益: 0.67
-  { index: 20, multiple: 414, money: 745.2 }   // 每一把收益: 0.59
+  { index: 3, multiple: 1, money: 1.8 },      // 每一把收益: 0.38
+  { index: 4, multiple: 2, money: 3.6 },      // 每一把收益: 1.00
+  { index: 5, multiple: 2, money: 3.6 },      // 每一把收益: 0.09
+  { index: 6, multiple: 3, money: 5.4 },      // 每一把收益: 0.36
+  { index: 7, multiple: 4, money: 7.2 },      // 每一把收益: 0.13
+  { index: 8, multiple: 6, money: 10.8 },      // 每一把收益: 0.39
+  { index: 9, multiple: 8, money: 14.4 },      // 每一把收益: 0.2
+  { index: 10, multiple: 11, money: 19.8 },      // 每一把收益: 0.16
+  { index: 11, multiple: 15, money: 27.0 },      // 每一把收益: 0.12
+  { index: 12, multiple: 21, money: 37.8 },      // 每一把收益: 0.17
+  { index: 13, multiple: 29, money: 52.2 },      // 每一把收益: 0.16
+  { index: 14, multiple: 40, money: 72.0 },      // 每一把收益: 0.13
+  { index: 15, multiple: 56, money: 100.8 },      // 每一把收益: 0.37
+  { index: 16, multiple: 77, money: 138.6 },      // 每一把收益: 0.25
+  { index: 17, multiple: 106, money: 190.8 },      // 每一把收益: 0.15
+  { index: 18, multiple: 147, money: 264.6 },      // 每一把收益: 0.31
+  { index: 19, multiple: 202, money: 363.6 },      // 每一把收益: 0.31
+  { index: 20, multiple: 280, money: 504.0 },      // 每一把收益: 0.32
 ];
 
 module.exports = {
