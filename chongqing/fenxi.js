@@ -46,7 +46,7 @@ dirsFiles.forEach(function(fileName){
 console.log('一共处理了' + dirsFiles.length + '天' + dataArr.length + '条数据');
 
 // x 表示*超过*第几把没中
-for (var x = 0; x < 30; x++) {
+for (var x = 0; x < 35; x++) {
   console.log('-----' + x + '-----');
   (function(){
     var index1 = -1;

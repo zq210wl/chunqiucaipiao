@@ -1,5 +1,30 @@
 var fs = require('fs');
 
+// function hasSame(lotteryArr, way) {
+//   var index1 = 0;
+//   var index2 = 0;
+//   var index3 = 0;
+//   if (way === 1) {
+//     index1 = 0;
+//     index2 = 1;
+//     index3 = 2;
+//   } else if (way === 2) {
+//     index1 = 1;
+//     index2 = 2;
+//     index3 = 3;
+//   } else if (way === 3) {
+//     index1 = 2;
+//     index2 = 3;
+//     index3 = 4;
+//   }
+//   if ((lotteryArr[index1] === lotteryArr[index2] || lotteryArr[index1] === lotteryArr[index3] || lotteryArr[index2] === lotteryArr[index3]) 
+//   && !(lotteryArr[index1] === lotteryArr[index2] && lotteryArr[index2] === lotteryArr[index3])) {
+//     return true;
+//   } else {
+//     return false;
+//   }
+// }
+
 function hasSame(lotteryArr, way) {
   var index1 = 0;
   var index2 = 0;
@@ -17,8 +42,7 @@ function hasSame(lotteryArr, way) {
     index2 = 3;
     index3 = 4;
   }
-  if ((lotteryArr[index1] === lotteryArr[index2] || lotteryArr[index1] === lotteryArr[index3] || lotteryArr[index2] === lotteryArr[index3]) 
-  && !(lotteryArr[index1] === lotteryArr[index2] && lotteryArr[index2] === lotteryArr[index3])) {
+  if (lotteryArr[index1] !== lotteryArr[index2] && lotteryArr[index2] !== lotteryArr[index3] && lotteryArr[index1] !== lotteryArr[index3]) {
     return true;
   } else {
     return false;
@@ -26,7 +50,7 @@ function hasSame(lotteryArr, way) {
 }
 
 var dataArr = [];
-var dirsFiles = fs.readdirSync('./tencent/data');
+var dirsFiles = fs.readdirSync('./tencent/cleanedData');
 if (dirsFiles.indexOf('.DS_Store') !== -1) {
   dirsFiles = dirsFiles.slice(1);
 }
@@ -41,7 +65,7 @@ dirsFiles = dirsFiles.slice(idx1, idx2);
 console.log(dirsFiles);
 
 dirsFiles.forEach(function(fileName){
-  dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./tencent/data/' + fileName, 'utf8')).data.original_data);
+  dataArr = dataArr.concat(JSON.parse(fs.readFileSync('./tencent/cleanedData/' + fileName, 'utf8')).data.original_data);
 });
 
 var hackDayNum = arg1 ? 0 : 4;
@@ -49,7 +73,7 @@ var hackDayNum = arg1 ? 0 : 4;
 console.log('一共处理了' + (dirsFiles.length + hackDayNum) + '天' + dataArr.length + '条数据');
 
 // x 表示*超过*第几把没中
-for (var x = 8; x < 40; x++) {
+for (var x = 0; x < 40; x++) {
   console.log('-----' + x + '-----');
   (function(){
     var index1 = -1;

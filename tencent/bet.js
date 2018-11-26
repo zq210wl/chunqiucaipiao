@@ -5,7 +5,7 @@ var BET_LIST = common.BET_LIST;
 var getNextDataByMultipleIndex = common.getNextDataByMultipleIndex;
 var hasSame = common.hasSame;
 
-var beginBackData = BET_LIST[19]; // 开始返回的数据
+var beginBackData = BET_LIST[6]; // 开始返回的数据
 var backToData = BET_LIST[0]; // 返回哪一个数据
 var backDetail = [ //  返回详情
   // { index, city, pos } 第几把
@@ -77,13 +77,16 @@ DIRS.forEach(function(dir){
   allDatas[dir] = dataArr;
 });
 
+console.log('导出的文件名', exportFilename);
+
 // 如果文件已经存在就先删除
 if (fs.existsSync(`./tencent/cleanedResult/${exportFilename}.txt`)) {
   fs.unlinkSync(`./tencent/cleanedResult/${exportFilename}.txt`);
+  //fs.writeFileSync(`./tencent/cleanedResult/${exportFilename}.txt`, '');
 }
 
 var dataLen = allDatas.tencent.length;
-var notWinBackNum = 17; // 在第几把未中奖就开始从下一把跟投
+var notWinBackNum = 0; // 在第几把未中奖就开始从下一把跟投
 var preEndIdx = notWinBackNum - 1; // 上一次结束跟投的下标
 var nextStartIdx = 0; // 下次开始跟投的下标
 var profitFlags = [
@@ -92,9 +95,9 @@ var profitFlags = [
   //   done: false
   // }
 ];
-for (var i = 0; i < 4; i++) {
+for (var i = 0; i < 3; i++) {
   profitFlags.push({
-    money: 90,
+    money: 100,
     done: false
   });
 }
@@ -173,9 +176,11 @@ function bet() {
         };
         finding();
       } else {
-        console.log('全部投注结束');
+        console.log('全部标准达标，投注结束');
       }
       return;
+    } else if (i === (dataLen - 1)){
+      console.log('数据没了，最后盈利:', allBets.profit);
     }
 
   }

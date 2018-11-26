@@ -5,7 +5,7 @@ var BET_LIST = common.BET_LIST;
 var getNextDataByMultipleIndex = common.getNextDataByMultipleIndex;
 var hasSame = common.hasSame;
 
-var beginBackData = BET_LIST[13]; // 开始返回的数据
+var beginBackData = BET_LIST[4]; // 开始返回的数据
 var backToData = BET_LIST[0]; // 返回哪一个数据
 var backDetail = [ //  返回详情
   // { index, city, pos } 第几把
@@ -86,7 +86,7 @@ if (fs.existsSync(`./tencent/cleanedResult/${exportFilename}.txt`)) {
 }
 
 var dataLen = allDatas.tencent.length;
-var stopProfit = 100;
+var stopProfit = 90;
 
 function randomNumBoth(Min,Max){
   var Range = Max - Min;
@@ -96,17 +96,14 @@ function randomNumBoth(Min,Max){
 }
 
 
-function bet() {
-  var tempNum = 3;
-  for (var i = 0; i < dataLen; i+=tempNum) {
-    // tempNum = randomNumBoth(1, 3);
-    // if (tempNum === 2) {
-    //   tempNum = 3;
-    // } else if (tempNum === 3){
-    //   tempNum = 4;
-    // } else if (tempNum === 4){
-    //   tempNum = 2;
-    // }
+function bet(i) {
+  var nextMultipleIdx = 1;
+  var tempNum = 6;
+
+  var i = 1;
+  // var i = 2;
+  // var i = 3;
+  for (; i < dataLen; i+=tempNum) {
     allBets.curProfit = 0; // 重置
     for (var key1 in curBets) {
       var curData = allDatas[key1][i]; // 当前一个城市对应的的一条数据
@@ -116,10 +113,8 @@ function bet() {
         var curPos = curCity[key2]; // 当前城市中的某一个位置(前中后)对象
         var prePos = preCity[key2]; // 上一把对应的当前城市中的某一个位置(前中后)对象
         var curNextBet = null; // 当前将要投注的数据
-        if (!prePos.win && prePos.multiple >= 13) {
-          tempNum = 1;
-        }
-        if (!prePos.win && prePos.multiple === beginBackData.multiple) { // 需要返回
+        if (!prePos.win && prePos.multipleIndex === beginBackData.index) { // 需要返回
+          console.log('-=-=-=-=-=-=-=-=-=-=-=-=-=-', prePos.multipleIndex);
           curNextBet = backToData;
           backDetail.push({ index: i + 1, city: CITY_ENGLISH_TO_CHINESE[key1], pos: POS_ENGLISH_TO_CHINESE[key2] });
         } else if (prePos.multiple === 0 || prePos.win){ // 第一把或上一把中奖了
@@ -129,10 +124,11 @@ function bet() {
         }
         curPos.win = hasSame(curData.lottery, key2);
         curPos.cost = curNextBet.money;
-        curPos.reward = curPos.win ? Number((curPos.cost * 3.62).toFixed(2)) : 0;
+        curPos.reward = curPos.win ? Number((curPos.cost * 3.625).toFixed(2)) : 0;
         curPos.profit = Number((curPos.reward - curPos.cost).toFixed(2));
         curPos.multiple = curNextBet.multiple;
         curPos.multipleIndex = curNextBet.index;
+
         // all
         allBets.index = i + 1;
         allBets.curProfit = Number((allBets.curProfit + curPos.profit).toFixed(2));
@@ -144,10 +140,9 @@ function bet() {
 
     if (allBets.profit >= stopProfit) {
       console.log('目标完成,盈利:', allBets.profit);
-    } else if (i >= (dataLen - 1)){
+    } else if (i >= (dataLen - 1 - tempNum)){
       console.log('数据没了，最后盈利:', allBets.profit);
     }
-
   }
 }
 
@@ -175,6 +170,8 @@ function printData() {
 
 console.log(`一共处理[ ${dataLen} ]条数据`);
 
+console.log(`一共处理[ ${dataLen} ]条数据＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝`);
+
 bet();
 
-// 目前发现的规律：盈利大于100就停止，第12把也就是76倍的时候不中就返回。
+// 目前发现的规律：前3把不中就开始投
