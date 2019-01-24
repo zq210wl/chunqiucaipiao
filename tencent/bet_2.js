@@ -100,9 +100,12 @@ function bet(i) {
   var nextMultipleIdx = 1;
   var tempNum = 6;
 
-  var i = 1;
+  var i = 2;
   // var i = 2;
   // var i = 3;
+
+  console.log(`一共处理[ ${dataLen} ]条数据＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝${i}`);
+
   for (; i < dataLen; i+=tempNum) {
     allBets.curProfit = 0; // 重置
     for (var key1 in curBets) {
@@ -167,10 +170,6 @@ function printData() {
     // console.log(`追加完成${++exportCount}`);
   });
 }
-
-console.log(`一共处理[ ${dataLen} ]条数据`);
-
-console.log(`一共处理[ ${dataLen} ]条数据＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝`);
 
 bet();
 

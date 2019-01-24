@@ -53,7 +53,7 @@ var lastQianIndex = -1;
 var lastZhongIndex = -1;
 var lastHouIndex = -1;
 // x 表示第几把中的
-for (var x = 1; x < 40; x++) {
+for (var x = 1; x < 30; x++) {
   console.log('----- 第' + x + '把中奖的数据 -----');
   (function(){
     var index1 = -1;

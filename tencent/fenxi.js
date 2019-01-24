@@ -1,30 +1,5 @@
 var fs = require('fs');
 
-// function hasSame(lotteryArr, way) {
-//   var index1 = 0;
-//   var index2 = 0;
-//   var index3 = 0;
-//   if (way === 1) {
-//     index1 = 0;
-//     index2 = 1;
-//     index3 = 2;
-//   } else if (way === 2) {
-//     index1 = 1;
-//     index2 = 2;
-//     index3 = 3;
-//   } else if (way === 3) {
-//     index1 = 2;
-//     index2 = 3;
-//     index3 = 4;
-//   }
-//   if ((lotteryArr[index1] === lotteryArr[index2] || lotteryArr[index1] === lotteryArr[index3] || lotteryArr[index2] === lotteryArr[index3]) 
-//   && !(lotteryArr[index1] === lotteryArr[index2] && lotteryArr[index2] === lotteryArr[index3])) {
-//     return true;
-//   } else {
-//     return false;
-//   }
-// }
-
 function hasSame(lotteryArr, way) {
   var index1 = 0;
   var index2 = 0;
@@ -42,12 +17,37 @@ function hasSame(lotteryArr, way) {
     index2 = 3;
     index3 = 4;
   }
-  if (lotteryArr[index1] !== lotteryArr[index2] && lotteryArr[index2] !== lotteryArr[index3] && lotteryArr[index1] !== lotteryArr[index3]) {
+  if ((lotteryArr[index1] === lotteryArr[index2] || lotteryArr[index1] === lotteryArr[index3] || lotteryArr[index2] === lotteryArr[index3]) 
+  && !(lotteryArr[index1] === lotteryArr[index2] && lotteryArr[index2] === lotteryArr[index3])) {
     return true;
   } else {
     return false;
   }
 }
+
+// function hasSame(lotteryArr, way) {
+//   var index1 = 0;
+//   var index2 = 0;
+//   var index3 = 0;
+//   if (way === 1) {
+//     index1 = 0;
+//     index2 = 1;
+//     index3 = 2;
+//   } else if (way === 2) {
+//     index1 = 1;
+//     index2 = 2;
+//     index3 = 3;
+//   } else if (way === 3) {
+//     index1 = 2;
+//     index2 = 3;
+//     index3 = 4;
+//   }
+//   if (lotteryArr[index1] !== lotteryArr[index2] && lotteryArr[index2] !== lotteryArr[index3] && lotteryArr[index1] !== lotteryArr[index3]) {
+//     return true;
+//   } else {
+//     return false;
+//   }
+// }
 
 var dataArr = [];
 var dirsFiles = fs.readdirSync('./tencent/cleanedData');

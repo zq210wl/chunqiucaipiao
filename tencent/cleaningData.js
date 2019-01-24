@@ -1,8 +1,14 @@
 var fs = require('fs');
 
 var cleanFilename = process.argv[2];
-var beginIssue = '' + cleanFilename + '0420'; // 7:00 开始
-var endIssue = '' + cleanFilename + '1140'; // 7:00 结束
+
+// var beginIssue = '' + cleanFilename + '0420'; // 7:00 开始
+// var endIssue = '' + cleanFilename + '1140'; // 7:00 结束
+// var cleanedDir = 'cleanedData'
+
+var beginIssue = '' + cleanFilename + '0600'; // 10:00 开始
+var endIssue = '' + cleanFilename + '0780'; // 13:00 结束
+var cleanedDir = 'cleanedData2'
 
 var exportData = {
   isSuccess: true,
@@ -39,7 +45,7 @@ dataArr.forEach(function(data, index){
   }
 });
 
-fs.writeFileSync('./tencent/cleanedData/' + cleanFilename + '.json' , JSON.stringify(exportData));
+fs.writeFileSync('./tencent/' + cleanedDir + '/' + cleanFilename + '.json' , JSON.stringify(exportData));
 
 console.log('数据清理完成');
 
