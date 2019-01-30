@@ -25,8 +25,8 @@ function hasSame(lotteryArr, way) {
   }
 }
 
-// var readDir = './tencent/cleanedData';
-var readDir = './chongqing/data';
+var readDir = './tencent/cleanedData';
+// var readDir = './chongqing/data';
 // var readDir = './xinjiang/data';
 // var readDir = './heilongjiang/data';
 
@@ -50,108 +50,116 @@ dirsFiles.forEach(function(fileName){
 });
 dataArr = dataArr.reverse();
 
-// for (var i = 0; i < dataArr.length; i++) {
-//   console.log(`${dataArr[i].lottery[1]}, ${dataArr[i].lottery[2]}, ${dataArr[i].lottery[3]}`);
-// }
-
-// return;
-
 var hackDayNum = arg1 ? 0 : 4;
 
 console.log('一共处理了' + (dirsFiles.length + hackDayNum) + '天' + dataArr.length + '条数据');
 
-var firstIndex = 0; // 首次从第几把开始投
-var pauseNum = 5; // 超过几把没中就暂停
-var spaceNum = 1; // 间隔几把投一次
-var pauseStartNum = 2; // 暂停结束后从第几把开始投
-var maxNum = 16; // 最大投几次
-var failStartNum = 1; // 失败后从第几把开始投
+var maxNum = 20; // 最大投几次
 
 var objs = [
   {
     name: '前',
     key: 1,
-    nextIndex: firstIndex,
+    nextIndex: -1,
     curBetNum: 0,
     betCount: 0,
     winCount: 0,
     failCount: 0,
-    hasPause: false,
     touIndexArr: []
   },
   {
     name: '中',
     key: 2,
-    nextIndex: firstIndex,
+    nextIndex: -1,
     curBetNum: 0,
     betCount: 0,
     winCount: 0,
     failCount: 0,
-    hasPause: false,
     touIndexArr: []
   },
   {
     name: '后',
     key: 3,
-    nextIndex: firstIndex,
+    nextIndex: -1,
     curBetNum: 0,
     betCount: 0,
     winCount: 0,
     failCount: 0,
-    hasPause: false,
     touIndexArr: []
   }
 ];
 
-function isPause(curIndex, key) {
-  if ((curIndex + 1) <= pauseNum) {
-    return false;
-  }
-  for (var i = (curIndex - 1); i >= (curIndex - pauseNum); i--) {
-    if (hasSame(dataArr[i].lottery, key)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 for (var m = 0; m < objs.length; m++) {
   var curObj = objs[m];
   for (var i = 0; i < dataArr.length; i++) {
-    var isWin = hasSame(dataArr[i].lottery, curObj.key);
-    if (curObj.hasPause) {
-      if (isWin) {
-        curObj.nextIndex = (i + pauseStartNum);
-        curObj.hasPause = false;
-      }
+    var curData = dataArr[i];
+    var preData1 = dataArr[i - 1];
+    var preData2 = dataArr[i - 2];
+    var preData3 = dataArr[i - 3];
+
+    var curIsWin = false;
+    var preIsWin1 = false;
+    var preIsWin2 = false;
+    var preIsWin3 = false;
+    
+    if (curData) {
+      curIsWin = hasSame(curData.lottery, curObj.key);
+    }
+    if (preData1) {
+      preIsWin1 = hasSame(preData1.lottery, curObj.key);
+    }
+    if (preData2) {
+      preIsWin2 = hasSame(preData2.lottery, curObj.key);
+    }
+    if (preData3) {
+      preIsWin3 = hasSame(preData3.lottery, curObj.key);
+    }
+
+    if (preIsWin1) {
       continue;
     }
-    if (i === curObj.nextIndex) {
-      if (isPause(i, curObj.key)) {
-        curObj.hasPause = true;
-        i--; // 后添加
-      } else {
-        curObj.curBetNum++;
-        if (isWin) {
+
+    if (!preIsWin1 && preIsWin2) {
+      curObj.curBetNum++;
+      if (curObj.curBetNum < maxNum) {
+        if (curIsWin) {
           curObj.winCount++;
-          curObj.nextIndex++;
+          curObj.curBetNum = 0;
+        }
+      } else {
+        if (!curIsWin) {
+          curObj.failCount++;
           curObj.curBetNum = 0;
         } else {
-          if (curObj.curBetNum < maxNum) {
-            curObj.nextIndex += (spaceNum + 1);
-            // if (curObj.curBetNum % 2 === 0) {
-            //   curObj.nextIndex += 1;
-            // }
-          } else {
-            curObj.failCount++;
-            curObj.nextIndex = (i + failStartNum);
-            curObj.curBetNum = 0;
-          }
+          curObj.winCount++;
+          curObj.curBetNum = 0;
         }
-        curObj.touIndexArr.push(i);
-        curObj.betCount++;
       }
+      curObj.betCount++;
+      continue;
     }
+
+
+    if (!preIsWin1 && !preIsWin2 && preIsWin3) {
+      curObj.curBetNum++;
+      if (curObj.curBetNum < maxNum) {
+        if (curIsWin) {
+          curObj.winCount++;
+          curObj.curBetNum = 0;
+        }
+      } else {
+        if (!curIsWin) {
+          curObj.failCount++;
+          curObj.curBetNum = 0;
+        } else {
+          curObj.winCount++;
+          curObj.curBetNum = 0;
+        }
+      }
+      curObj.betCount++;
+      continue;
+    }
+
   }
 
   console.log(`=========== ${curObj.name} ===========`);

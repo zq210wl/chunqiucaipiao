@@ -26,9 +26,14 @@ function hasSame(lotteryArr, way) {
 }
 
 // var readDir = './tencent/cleanedData';
-var readDir = './chongqing/data';
+// var readDir = './tencent/originData';
+
+// var readDir = './chongqing/data';
 // var readDir = './xinjiang/data';
 // var readDir = './heilongjiang/data';
+
+var readDir = './chunqiu/originData';
+
 
 var dataArr = [];
 var dirsFiles = fs.readdirSync(readDir);
@@ -45,112 +50,125 @@ var idx2 = dirsFiles.length - lastFromNum;
 dirsFiles = dirsFiles.slice(idx1, idx2);
 console.log(dirsFiles);
 
+
 dirsFiles.forEach(function(fileName){
   dataArr = dataArr.concat(JSON.parse(fs.readFileSync(readDir + '/' + fileName, 'utf8')).data.original_data);
 });
 dataArr = dataArr.reverse();
 
-// for (var i = 0; i < dataArr.length; i++) {
-//   console.log(`${dataArr[i].lottery[1]}, ${dataArr[i].lottery[2]}, ${dataArr[i].lottery[3]}`);
-// }
 
-// return;
+// dataArr = [
+//   { "lottery": ["0","1","2","3","4"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["0","1","2","3","4"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["0","1","2","3","4"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["0","1","2","3","4"] },
+//   { "lottery": ["0","1","2","3","4"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["0","1","2","3","4"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["9","9","1","2","3"] },
+//   { "lottery": ["0","1","2","3","4"] },
+// ];
+
 
 var hackDayNum = arg1 ? 0 : 4;
 
 console.log('一共处理了' + (dirsFiles.length + hackDayNum) + '天' + dataArr.length + '条数据');
 
-var firstIndex = 0; // 首次从第几把开始投
-var pauseNum = 5; // 超过几把没中就暂停
-var spaceNum = 1; // 间隔几把投一次
-var pauseStartNum = 2; // 暂停结束后从第几把开始投
-var maxNum = 16; // 最大投几次
-var failStartNum = 1; // 失败后从第几把开始投
+// 腾讯，春秋，韩国：三把连中，投第四把也中     
+var maxNum = 15; // 最大投几次
 
 var objs = [
   {
     name: '前',
     key: 1,
-    nextIndex: firstIndex,
     curBetNum: 0,
     betCount: 0,
     winCount: 0,
     failCount: 0,
-    hasPause: false,
-    touIndexArr: []
+    touIndexArr: [],
+    base: 0
   },
   {
     name: '中',
     key: 2,
-    nextIndex: firstIndex,
     curBetNum: 0,
     betCount: 0,
     winCount: 0,
     failCount: 0,
-    hasPause: false,
-    touIndexArr: []
+    touIndexArr: [],
+    base: 0
   },
   {
     name: '后',
     key: 3,
-    nextIndex: firstIndex,
     curBetNum: 0,
     betCount: 0,
     winCount: 0,
     failCount: 0,
-    hasPause: false,
-    touIndexArr: []
+    touIndexArr: [],
+    base: 0
   }
 ];
-
-function isPause(curIndex, key) {
-  if ((curIndex + 1) <= pauseNum) {
-    return false;
-  }
-  for (var i = (curIndex - 1); i >= (curIndex - pauseNum); i--) {
-    if (hasSame(dataArr[i].lottery, key)) {
-      return false;
-    }
-  }
-  return true;
-}
 
 for (var m = 0; m < objs.length; m++) {
   var curObj = objs[m];
   for (var i = 0; i < dataArr.length; i++) {
-    var isWin = hasSame(dataArr[i].lottery, curObj.key);
-    if (curObj.hasPause) {
-      if (isWin) {
-        curObj.nextIndex = (i + pauseStartNum);
-        curObj.hasPause = false;
-      }
-      continue;
+    var curData = dataArr[i];
+    var preData1 = dataArr[i - 1];
+    var preData2 = dataArr[i - 2];
+    var preData3 = dataArr[i - 3];
+    var preData4 = dataArr[i - 4];
+
+    var curIsWin = false;
+    var preIsWin1 = false;
+    var preIsWin2 = false;
+    var preIsWin3 = false;
+    var preIsWin4 = false;
+    
+    if (curData) {
+      curIsWin = hasSame(curData.lottery, curObj.key);
     }
-    if (i === curObj.nextIndex) {
-      if (isPause(i, curObj.key)) {
-        curObj.hasPause = true;
-        i--; // 后添加
+    if (preData1) {
+      preIsWin1 = hasSame(preData1.lottery, curObj.key);
+    }
+    if (preData2) {
+      preIsWin2 = hasSame(preData2.lottery, curObj.key);
+    }
+    if (preData3) {
+      preIsWin3 = hasSame(preData3.lottery, curObj.key);
+    }
+    if (preData4) {
+      preIsWin4 = hasSame(preData4.lottery, curObj.key);
+    }
+
+    if (preIsWin1 && preIsWin2 && preIsWin3 && !preIsWin4) {
+      curObj.curBetNum++;
+      if (curIsWin) {
+        curObj.winCount++;
+        curObj.curBetNum = 0;
       } else {
-        curObj.curBetNum++;
-        if (isWin) {
-          curObj.winCount++;
-          curObj.nextIndex++;
+        if (curObj.curBetNum >= maxNum) {
+          curObj.failCount++;
           curObj.curBetNum = 0;
-        } else {
-          if (curObj.curBetNum < maxNum) {
-            curObj.nextIndex += (spaceNum + 1);
-            // if (curObj.curBetNum % 2 === 0) {
-            //   curObj.nextIndex += 1;
-            // }
-          } else {
-            curObj.failCount++;
-            curObj.nextIndex = (i + failStartNum);
-            curObj.curBetNum = 0;
-          }
         }
-        curObj.touIndexArr.push(i);
-        curObj.betCount++;
       }
+      curObj.betCount++;
     }
   }
 

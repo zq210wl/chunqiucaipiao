@@ -12,7 +12,7 @@ function getFileName() {
 }
 
 request({
-  url: 'https://api.chunqiu1.com/trends',
+  url: 'https://api.chunqiu3.com/trends',
   method: 'POST',
   headers: {
     Accept: 'application/vnd.chunqiu.v1+json'

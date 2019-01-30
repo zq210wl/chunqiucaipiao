@@ -25,8 +25,8 @@ function hasSame(lotteryArr, way) {
   }
 }
 
-// var readDir = './tencent/cleanedData';
-var readDir = './chongqing/data';
+var readDir = './tencent/cleanedData';
+// var readDir = './chongqing/data';
 // var readDir = './xinjiang/data';
 // var readDir = './heilongjiang/data';
 
@@ -50,12 +50,6 @@ dirsFiles.forEach(function(fileName){
 });
 dataArr = dataArr.reverse();
 
-// for (var i = 0; i < dataArr.length; i++) {
-//   console.log(`${dataArr[i].lottery[1]}, ${dataArr[i].lottery[2]}, ${dataArr[i].lottery[3]}`);
-// }
-
-// return;
-
 var hackDayNum = arg1 ? 0 : 4;
 
 console.log('一共处理了' + (dirsFiles.length + hackDayNum) + '天' + dataArr.length + '条数据');
@@ -64,7 +58,7 @@ var firstIndex = 0; // 首次从第几把开始投
 var pauseNum = 5; // 超过几把没中就暂停
 var spaceNum = 1; // 间隔几把投一次
 var pauseStartNum = 2; // 暂停结束后从第几把开始投
-var maxNum = 16; // 最大投几次
+var maxNum = 8; // 最大投几次
 var failStartNum = 1; // 失败后从第几把开始投
 
 var objs = [
@@ -122,6 +116,11 @@ for (var m = 0; m < objs.length; m++) {
     if (curObj.hasPause) {
       if (isWin) {
         curObj.nextIndex = (i + pauseStartNum);
+        if (pauseStartNum === 2) {
+          pauseStartNum = 3;
+        } else {
+          pauseStartNum = 2;
+        }
         curObj.hasPause = false;
       }
       continue;

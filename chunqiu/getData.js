@@ -12,14 +12,14 @@ function getFileName() {
 }
 
 request({
-  url: 'https://api.chunqiu1.com/trends',
+  url: 'https://api.chunqiu3.com/trends',
   method: 'POST',
   headers: {
     Accept: 'application/vnd.chunqiu.v1+json'
   },
   body: {
     lottery_id: 65,
-    count: "3000" // 2天
+    count: "3400" // 2天
   },
   json: true
 }, function(error, response, body){

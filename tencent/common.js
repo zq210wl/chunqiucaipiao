@@ -13,7 +13,7 @@
 //   { multiple: 76, money: 136.8, index: 12 },
 //   { multiple: 109, money: 196.2, index: 13 },
 //   { multiple: 159, money: 286.2, index: 14 },
-//   { multiple: 234, money: 421.2, index: 15 },
+//   { multiple: 234, money: 421.2, index: 15 },    // 1350
 //   { multiple: 346, money: 622.8, index: 16 },
 //   { multiple: 515, money: 927, index: 17 },
 //   { multiple: 768, money: 1382.4, index: 18 },
@@ -35,8 +35,8 @@
 //   { multiple: 14, money: 25.2, index: 8 },            // 每一把总收益: 14.00   1.80
 //   { multiple: 20, money: 36.0, index: 9 },            // 每一把总收益: 17.17   1.90
 //   { multiple: 27, money: 48.6, index: 10 },           // 每一把总收益: 14.27   1.42
-//   { multiple: 38, money: 68.4, index: 11 },
-//   { multiple: 53, money: 95.4, index: 12 },
+//   { multiple: 38, money: 68.4, index: 11 },           // 每一把总收益: 17.68   1.60
+//   { multiple: 53, money: 95.4, index: 12 },           // 每一把总收益: 20.21   1.68
 //   { multiple: 73, money: 131.4, index: 13 },
 //   { multiple: 102, money: 183.6, index: 14 },
 //   { multiple: 142, money: 255.6, index: 15 },
