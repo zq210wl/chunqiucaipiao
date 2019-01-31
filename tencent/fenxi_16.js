@@ -26,13 +26,13 @@ function hasSame(lotteryArr, way) {
 }
 
 // var readDir = './tencent/cleanedData';
-// var readDir = './tencent/originData';
+var readDir = './tencent/originData';
 
 // var readDir = './chongqing/data';
 // var readDir = './xinjiang/data';
 // var readDir = './heilongjiang/data';
 
-var readDir = './chunqiu/originData';
+// var readDir = './chunqiu/originData';
 
 
 var dataArr = [];
@@ -90,7 +90,7 @@ var hackDayNum = arg1 ? 0 : 4;
 
 console.log('一共处理了' + (dirsFiles.length + hackDayNum) + '天' + dataArr.length + '条数据');
 
-// 腾讯，春秋，韩国：三把连中，投第四把也中     
+// 腾讯：三把连中，投第四把也中     
 var maxNum = 15; // 最大投几次
 
 var objs = [
